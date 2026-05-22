@@ -1,0 +1,193 @@
+@import "tailwindcss";
+
+@theme {
+  /* Primary - Violet/Purple */
+  --color-primary-50: #f5f3ff;
+  --color-primary-100: #ede9fe;
+  --color-primary-200: #ddd6fe;
+  --color-primary-300: #c4b5fd;
+  --color-primary-400: #a78bfa;
+  --color-primary-500: #8b5cf6;
+  --color-primary-600: #7c3aed;
+  --color-primary-700: #6d28d9;
+  --color-primary-800: #5b21b6;
+  --color-primary-900: #4c1d95;
+  --color-primary-950: #2e1065;
+
+  /* Secondary - Soft Blue */
+  --color-secondary: #93c5fd;
+  --color-secondary-light: #bfdbfe;
+
+  /* Accent - Emerald */
+  --color-accent: #10b981;
+  --color-accent-light: #6ee7b7;
+
+  /* Status Colors */
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+
+  /* Background & Surface */
+  --color-background: #f8fafc;
+  --color-surface: #ffffff;
+  --color-card: #ffffff;
+
+  /* Font */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  /* Shadows */
+  --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --shadow-glow: 0 8px 20px -6px rgba(124, 58, 237, 0.5);
+}
+
+/* Base Styles */
+body {
+  background-color: var(--color-background);
+  color: #111827;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background-color: var(--color-primary-500);
+  color: white;
+}
+
+/* Glass utility */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: var(--shadow-soft);
+}
+
+/* Ant Design Overrides for premium SaaS look */
+.ant-btn-primary {
+  background: linear-gradient(135deg, var(--color-primary-600), var(--color-primary-500)) !important;
+  border: none !important;
+  box-shadow: var(--shadow-glow) !important;
+  transition: all 0.3s ease !important;
+}
+
+.ant-btn-primary:hover {
+  background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-400)) !important;
+  box-shadow: 0 12px 24px -8px rgba(124, 58, 237, 0.7) !important;
+  transform: translateY(-1px) !important;
+}
+
+.ant-card {
+  box-shadow: var(--shadow-soft) !important;
+  border-color: #f1f5f9 !important;
+  border-radius: 16px !important;
+  overflow: hidden;
+}
+
+.ant-input,
+.ant-input-password,
+.ant-picker,
+.ant-select-selector,
+.ant-input-number {
+  border-radius: 12px !important;
+  border-color: #e5e7eb !important;
+  transition: all 0.3s ease !important;
+}
+
+.ant-input:hover,
+.ant-input-password:hover,
+.ant-picker:hover,
+.ant-select-selector:hover,
+.ant-input-number:hover {
+  border-color: #d1d5db !important;
+}
+
+.ant-input:focus,
+.ant-input-focused,
+.ant-input-password:focus,
+.ant-picker-focused,
+.ant-select-focused .ant-select-selector {
+  border-color: var(--color-primary-500) !important;
+  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1) !important;
+}
+
+.ant-table {
+  border-radius: 16px !important;
+  overflow: hidden;
+}
+
+.ant-table-thead > tr > th {
+  background: #f8fafc !important;
+  font-weight: 600 !important;
+  color: #6b7280 !important;
+  text-transform: uppercase;
+  font-size: 0.75rem !important;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #f1f5f9 !important;
+}
+
+.ant-table-tbody > tr > td {
+  border-bottom: 1px solid #f8fafc !important;
+}
+
+.ant-table-tbody > tr:hover > td {
+  background: #faf5ff !important;
+}
+
+.ant-menu {
+  background: transparent !important;
+  border: none !important;
+}
+
+.ant-checkbox-checked .ant-checkbox-inner {
+  background-color: var(--color-primary-600) !important;
+  border-color: var(--color-primary-600) !important;
+}
+
+/* Custom Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.7s ease-out forwards;
+}
+
+.animate-fade-in-left {
+  animation: fadeInLeft 1s ease-out 0.3s forwards;
+  opacity: 0;
+}
+
+.animate-fade-in-right {
+  animation: fadeInRight 1s ease-out 0.5s forwards;
+  opacity: 0;
+}
