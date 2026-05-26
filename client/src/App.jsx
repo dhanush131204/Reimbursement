@@ -4,14 +4,19 @@ import MainLayout from './layouts/MainLayout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import NewClaim from './pages/NewClaim';
-import Claims from './pages/Claims';
 import Register from './pages/Register';
+import Approved from './pages/Approved';
+import Pending from './pages/Pending';
+import Rejected from './pages/Rejected';
+import ExpenseHistory from './pages/ExpenseHistory';
+import Settings from './pages/Settings';
 
 const ProtectedRoute = ({ children }) => {
   const { userInfo } = useSelector((state) => state.auth);
-  return userInfo ? children : <Navigate to="/login" replace />;
+  const storedUser = localStorage.getItem('userInfo');
+  const isAuthenticated = userInfo || (storedUser && JSON.parse(storedUser));
+  return isAuthenticated ? children : <Navigate to="/login" replace />;
 };
-
 
 function App() {
   return (
@@ -27,8 +32,13 @@ function App() {
         }
       >
         <Route index element={<Dashboard />} />
-        <Route path="claims" element={<Claims />} />
+        <Route path="claims" element={<ExpenseHistory />} />
         <Route path="claims/new" element={<NewClaim />} />
+        <Route path="approved" element={<Approved />} />
+        <Route path="pending" element={<Pending />} />
+        <Route path="rejected" element={<Rejected />} />
+        <Route path="history" element={<ExpenseHistory />} />
+        <Route path="settings" element={<Settings />} />
       </Route>
     </Routes>
   );

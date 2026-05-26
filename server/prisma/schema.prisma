@@ -13,6 +13,8 @@ model User {
   password      String
   name          String
   contactNumber String?
+  vizNo         String?
+  designation   String?
   role          Role           @default(EMPLOYEE)
   claims        Claim[]
   payments      Payment[]
@@ -29,7 +31,7 @@ enum Role {
 
 model Claim {
   id            Int           @id @default(autoincrement())
-  vizNo         String        @unique
+  vizNo         String        
   userId        Int
   user          User          @relation(fields: [userId], references: [id])
   expenseDate   DateTime

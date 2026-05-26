@@ -9,12 +9,19 @@ export const getClaims = async (req, res) => {
     let claims;
     if (req.user.role === 'ADMIN') {
       claims = await prisma.claim.findMany({
-        include: { user: { select: { name: true, email: true } } },
+        include: { 
+          user: { select: { name: true, email: true, contactNumber: true, vizNo: true, designation: true } },
+          receipts: true 
+        },
         orderBy: { createdAt: 'desc' }
       });
     } else {
       claims = await prisma.claim.findMany({
         where: { userId: req.user.id },
+        include: {
+          user: { select: { name: true, email: true, contactNumber: true, vizNo: true, designation: true } },
+          receipts: true,
+        },
         orderBy: { createdAt: 'desc' }
       });
     }
@@ -28,24 +35,61 @@ export const getClaims = async (req, res) => {
 // @route   POST /api/claims
 // @access  Private (Employee)
 export const createClaim = async (req, res) => {
-  const { category, purpose, totalAmount, amountSpentOn, notes, expenseDate } = req.body;
+  const { category, purpose, totalAmount, amountSpentOn, notes, expenseDate, vizNo, receiptUrl, personalDetails, contactNumber } = req.body;
 
   try {
+    if (!req.user?.id) {
+      return res.status(401).json({ message: 'Not authorized to create claim' });
+    }
+
+    if (!category || !purpose || totalAmount === undefined || totalAmount === null || !expenseDate) {
+      return res.status(400).json({ message: 'Please complete all required expense details' });
+    }
+
+    const parsedAmount = Number(totalAmount);
+    if (Number.isNaN(parsedAmount) || parsedAmount <= 0) {
+      return res.status(400).json({ message: 'Please enter a valid amount' });
+    }
+
+    const parsedExpenseDate = new Date(expenseDate);
+    if (Number.isNaN(parsedExpenseDate.getTime())) {
+      return res.status(400).json({ message: 'Please select a valid request date' });
+    }
+
+    const submittedContactNumber = (contactNumber || personalDetails?.contact || '').trim();
+
+    if (submittedContactNumber) {
+      await prisma.user.update({
+        where: { id: req.user.id },
+        data: { contactNumber: submittedContactNumber },
+      });
+    }
+
     const claim = await prisma.claim.create({
       data: {
-        vizNo: `VIZ-${Date.now()}`,
+        vizNo: String(vizNo || `VIZ-${Date.now()}`),
         userId: req.user.id,
         category,
         purpose,
-        totalAmount: Number(totalAmount),
-        amountSpentOn,
-        notes,
-        expenseDate: new Date(expenseDate),
+        totalAmount: parsedAmount,
+        amountSpentOn: amountSpentOn || null,
+        notes: notes || null,
+        expenseDate: parsedExpenseDate,
       },
     });
+
+    if (receiptUrl) {
+      await prisma.receipt.create({
+        data: {
+          claimId: claim.id,
+          fileUrl: receiptUrl
+        }
+      });
+    }
     res.status(201).json(claim);
   } catch (error) {
-    res.status(500).json({ message: 'Server Error creating claim' });
+    console.error('Create claim error:', error);
+    res.status(500).json({ message: error?.message || 'Server Error creating claim' });
   }
 };
 
@@ -64,5 +108,36 @@ export const updateClaimStatus = async (req, res) => {
     res.json(updatedClaim);
   } catch (error) {
     res.status(500).json({ message: 'Server Error updating claim' });
+  }
+};
+
+// @desc    Delete claim
+// @route   DELETE /api/claims/:id
+// @access  Private (Admin)
+export const deleteClaim = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    if (req.user.role !== 'ADMIN') {
+      return res.status(403).json({ message: 'Only admins can delete claims' });
+    }
+
+    const claim = await prisma.claim.findUnique({ where: { id: Number(id) } });
+
+    if (!claim) {
+      return res.status(404).json({ message: 'Claim not found' });
+    }
+
+    // Delete related records first to avoid foreign key constraints
+    await prisma.payment.deleteMany({ where: { claimId: Number(id) } });
+    await prisma.receipt.deleteMany({ where: { claimId: Number(id) } });
+    
+    await prisma.claim.delete({
+      where: { id: Number(id) },
+    });
+    
+    res.json({ message: 'Claim removed successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error deleting claim' });
   }
 };

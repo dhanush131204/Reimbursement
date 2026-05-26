@@ -18,6 +18,9 @@ export const authUser = async (req, res) => {
         id: user.id,
         name: user.name,
         email: user.email,
+        contactNumber: user.contactNumber,
+        vizNo: user.vizNo,
+        designation: user.designation,
         role: user.role,
         token: generateToken(user.id, user.role),
       });
@@ -33,7 +36,7 @@ export const authUser = async (req, res) => {
 // @route   POST /api/auth/register
 // @access  Public
 export const registerUser = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, contactNumber, vizNo, designation } = req.body;
 
   try {
     const userExists = await prisma.user.findUnique({ where: { email } });
@@ -50,6 +53,9 @@ export const registerUser = async (req, res) => {
         name,
         email,
         password: hashedPassword,
+        contactNumber: contactNumber || null,
+        vizNo: vizNo || null,
+        designation: designation || null,
       },
     });
 
@@ -58,6 +64,9 @@ export const registerUser = async (req, res) => {
         id: user.id,
         name: user.name,
         email: user.email,
+        contactNumber: user.contactNumber,
+        vizNo: user.vizNo,
+        designation: user.designation,
         role: user.role,
         token: generateToken(user.id, user.role),
       });
@@ -66,5 +75,48 @@ export const registerUser = async (req, res) => {
     }
   } catch (error) {
     res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+// @desc    Update logged-in user's profile
+// @route   PUT /api/auth/profile
+// @access  Private
+export const updateUserProfile = async (req, res) => {
+  const { name, email, contactNumber, vizNo, designation } = req.body;
+
+  try {
+    if (!name || !email) {
+      return res.status(400).json({ message: 'Name and email are required' });
+    }
+
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+
+    if (existingUser && existingUser.id !== req.user.id) {
+      return res.status(400).json({ message: 'Email is already in use' });
+    }
+
+    const user = await prisma.user.update({
+      where: { id: req.user.id },
+      data: {
+        name,
+        email,
+        contactNumber: contactNumber || null,
+        vizNo: vizNo || null,
+        designation: designation || null,
+      },
+    });
+
+    res.json({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      contactNumber: user.contactNumber,
+      vizNo: user.vizNo,
+      designation: user.designation,
+      role: user.role,
+      token: generateToken(user.id, user.role),
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error updating profile' });
   }
 };

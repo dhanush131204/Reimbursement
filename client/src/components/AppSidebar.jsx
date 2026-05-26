@@ -1,0 +1,74 @@
+import { useLocation, useNavigate } from 'react-router-dom';
+import {
+  LayoutDashboard,
+  PlusCircle,
+  CircleCheckBig,
+  Clock3,
+  CircleX,
+  History,
+  Settings,
+  LogOut,
+} from 'lucide-react';
+import Frame1Image from '../assets/image/Frame1.png';
+
+const navItems = [
+  { name: 'Dashboard', path: '/', icon: LayoutDashboard },
+  { name: 'New Request', path: '/claims/new', icon: PlusCircle },
+  { name: 'Approved', path: '/approved', icon: CircleCheckBig },
+  { name: 'Pending', path: '/pending', icon: Clock3 },
+  { name: 'Rejected', path: '/rejected', icon: CircleX },
+  { name: 'Expense History', path: '/history', icon: History },
+  { name: 'Settings', path: '/settings', icon: Settings },
+];
+
+const AppSidebar = ({ onLogout, onNavigate }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const goTo = (path) => {
+    navigate(path);
+    onNavigate?.();
+  };
+
+  return (
+    <aside className="flex h-full w-full flex-col border-r border-[#d7e4ea] bg-[#f0fbff]">
+      <div className="flex h-[78px] items-center px-5">
+        <img src={Frame1Image} alt="Third Vizion" className="h-12 w-full object-contain object-left" />
+      </div>
+
+      <nav className="flex-1 space-y-1.5 px-3 py-02">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = location.pathname === item.path || (item.path === '/history' && location.pathname === '/claims');
+          return (
+            <button
+              key={item.name}
+              type="button"
+              onClick={() => goTo(item.path)}
+              className={`relative flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm transition-colors ${
+                isActive ? 'bg-[#d8f5ff] font-semibold text-[#172033]' : 'text-[#7a8793] hover:bg-white hover:text-[#172033]'
+              }`}
+            >
+              <Icon className={`h-4 w-4 ${isActive ? 'text-[#00aeef]' : 'text-[#9aa4ad]'}`} />
+              <span>{item.name}</span>
+              {isActive && <span className="absolute right-0 top-0 h-full w-1 bg-[#00aeef]" />}
+            </button>
+          );
+        })}
+      </nav>
+
+      <div className="border-t border-[#d7e4ea] p-3">
+        <button
+          type="button"
+          onClick={onLogout}
+          className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-semibold text-[#ef4444] hover:bg-white"
+        >
+          <LogOut className="h-4 w-4" />
+          Logout
+        </button>
+      </div>
+    </aside>
+  );
+};
+
+export default AppSidebar;

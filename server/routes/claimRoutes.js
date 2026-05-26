@@ -1,5 +1,5 @@
 import express from 'express';
-import { getClaims, createClaim, updateClaimStatus } from '../controllers/claimController.js';
+import { getClaims, createClaim, updateClaimStatus, deleteClaim } from '../controllers/claimController.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -10,5 +10,8 @@ router.route('/')
 
 router.route('/:id/status')
   .patch(protect, admin, updateClaimStatus);
+
+router.route('/:id')
+  .delete(protect, deleteClaim);
 
 export default router;

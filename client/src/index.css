@@ -1,87 +1,91 @@
 @import "tailwindcss";
 
-@theme {
-  /* Primary - Violet/Purple */
-  --color-primary-50: #f5f3ff;
-  --color-primary-100: #ede9fe;
-  --color-primary-200: #ddd6fe;
-  --color-primary-300: #c4b5fd;
-  --color-primary-400: #a78bfa;
-  --color-primary-500: #8b5cf6;
-  --color-primary-600: #7c3aed;
-  --color-primary-700: #6d28d9;
-  --color-primary-800: #5b21b6;
-  --color-primary-900: #4c1d95;
-  --color-primary-950: #2e1065;
-
-  /* Secondary - Soft Blue */
-  --color-secondary: #93c5fd;
-  --color-secondary-light: #bfdbfe;
-
-  /* Accent - Emerald */
-  --color-accent: #10b981;
-  --color-accent-light: #6ee7b7;
-
-  /* Status Colors */
-  --color-success: #22c55e;
-  --color-warning: #f59e0b;
-  --color-error: #ef4444;
-
-  /* Background & Surface */
-  --color-background: #f8fafc;
-  --color-surface: #ffffff;
-  --color-card: #ffffff;
-
-  /* Font */
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-
-  /* Shadows */
-  --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-  --shadow-glow: 0 8px 20px -6px rgba(124, 58, 237, 0.5);
+* {
+  box-sizing: border-box;
 }
 
-/* Base Styles */
+html,
+body,
+#root {
+  min-height: 100%;
+  overflow-x: hidden;
+}
+
+:root {
+  --app-primary: #19c6ef;
+  --app-primary-dark: #0098dc;
+  --app-primary-soft: #19c6ef22;
+  --app-bg: #ffffff;
+  --app-surface: #ffffff;
+  --app-text: #111827;
+}
+
+:root[data-theme='dark'] {
+  --app-bg: #101828;
+  --app-surface: #172033;
+  --app-text: #f8fafc;
+}
+
+@theme {
+  --color-primary-50: #eafbff;
+  --color-primary-100: #d8f5ff;
+  --color-primary-200: #aeeeff;
+  --color-primary-300: #6cdef8;
+  --color-primary-400: #19c6ef;
+  --color-primary-500: #00aeef;
+  --color-primary-600: #0098dc;
+  --color-primary-700: #0879b0;
+  --color-background: #ffffff;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
 body {
-  background-color: var(--color-background);
-  color: #111827;
+  margin: 0;
+  background: var(--app-bg);
+  color: var(--app-text);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-::selection {
-  background-color: var(--color-primary-500);
-  color: white;
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
 
-/* Glass utility */
-.glass {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: var(--shadow-soft);
+::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-/* Ant Design Overrides for premium SaaS look */
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
 .ant-btn-primary {
-  background: linear-gradient(135deg, var(--color-primary-600), var(--color-primary-500)) !important;
-  border: none !important;
-  box-shadow: var(--shadow-glow) !important;
-  transition: all 0.3s ease !important;
+  background: linear-gradient(180deg, var(--app-primary), var(--app-primary-dark)) !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  font-weight: 600 !important;
 }
 
 .ant-btn-primary:hover {
-  background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-400)) !important;
-  box-shadow: 0 12px 24px -8px rgba(124, 58, 237, 0.7) !important;
-  transform: translateY(-1px) !important;
+  background: linear-gradient(180deg, var(--app-primary), var(--app-primary-dark)) !important;
+  box-shadow: none !important;
 }
 
-.ant-card {
-  box-shadow: var(--shadow-soft) !important;
-  border-color: #f1f5f9 !important;
-  border-radius: 16px !important;
-  overflow: hidden;
+.ant-form-item {
+  margin-bottom: 14px !important;
+}
+
+.ant-form-item-label {
+  padding-bottom: 4px !important;
+}
+
+.ant-form-item-label > label {
+  color: #344054 !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
 }
 
 .ant-input,
@@ -89,105 +93,114 @@ body {
 .ant-picker,
 .ant-select-selector,
 .ant-input-number {
-  border-radius: 12px !important;
-  border-color: #e5e7eb !important;
-  transition: all 0.3s ease !important;
+  min-height: 34px !important;
+  border-color: #d7e0e8 !important;
+  border-radius: 5px !important;
+  background: #fffafd !important;
+  box-shadow: none !important;
+  font-size: 12px !important;
+}
+
+.ant-input,
+.ant-input-password,
+.ant-picker,
+.ant-input-number {
+  padding: 5px 10px !important;
+}
+
+.ant-input-number-input {
+  height: 24px !important;
+  font-size: 12px !important;
+}
+
+.ant-select-selector {
+  padding: 1px 10px !important;
 }
 
 .ant-input:hover,
 .ant-input-password:hover,
 .ant-picker:hover,
 .ant-select-selector:hover,
-.ant-input-number:hover {
-  border-color: #d1d5db !important;
-}
-
+.ant-input-number:hover,
 .ant-input:focus,
 .ant-input-focused,
 .ant-input-password:focus,
 .ant-picker-focused,
 .ant-select-focused .ant-select-selector {
-  border-color: var(--color-primary-500) !important;
-  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1) !important;
+  border-color: var(--app-primary) !important;
+  box-shadow: 0 0 0 2px var(--app-primary-soft) !important;
 }
 
-.ant-table {
-  border-radius: 16px !important;
-  overflow: hidden;
+.app-table .ant-table {
+  font-size: 12px;
+  max-width: 100%;
+  table-layout: fixed;
 }
 
-.ant-table-thead > tr > th {
-  background: #f8fafc !important;
+.app-table .ant-table-container,
+.app-table .ant-table-content {
+  max-width: 100%;
+  overflow-x: hidden !important;
+}
+
+.app-table .ant-table-thead > tr > th {
+  background: #f0fbff !important;
+  border-bottom: 1px solid #d7e0e8 !important;
+  color: #475467 !important;
+  font-size: 11px !important;
   font-weight: 600 !important;
-  color: #6b7280 !important;
-  text-transform: uppercase;
-  font-size: 0.75rem !important;
-  letter-spacing: 0.05em;
-  border-bottom: 1px solid #f1f5f9 !important;
+  padding: 13px 18px !important;
 }
 
-.ant-table-tbody > tr > td {
-  border-bottom: 1px solid #f8fafc !important;
+.app-table .ant-table-tbody > tr > td {
+  border-bottom: 1px solid #e6edf3 !important;
+  color: #344054;
+  padding: 14px 18px !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.ant-table-tbody > tr:hover > td {
-  background: #faf5ff !important;
+.app-table .ant-table-tbody > tr:hover > td {
+  background: #f8fdff !important;
 }
 
-.ant-menu {
-  background: transparent !important;
-  border: none !important;
+.app-pagination .ant-pagination-item-active {
+  border-color: var(--app-primary) !important;
+  background: var(--app-primary) !important;
 }
 
-.ant-checkbox-checked .ant-checkbox-inner {
-  background-color: var(--color-primary-600) !important;
-  border-color: var(--color-primary-600) !important;
+.app-pagination .ant-pagination-item-active a {
+  color: #ffffff !important;
 }
 
-/* Custom Animations */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.ant-upload-wrapper .ant-upload-drag,
+.app-upload .ant-upload-drag {
+  border: 1px dashed #9aaec0 !important;
+  border-radius: 6px !important;
+  background: #fffafd !important;
 }
 
-@keyframes fadeInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+.ant-upload-wrapper .ant-upload-drag:hover,
+.app-upload .ant-upload-drag:hover {
+  border-color: var(--app-primary) !important;
 }
 
-@keyframes fadeInRight {
-  from {
-    opacity: 0;
-    transform: translateX(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+.ant-switch.ant-switch-checked {
+  background: var(--app-primary) !important;
 }
 
-.animate-fade-in-up {
-  animation: fadeInUp 0.7s ease-out forwards;
+:root[data-theme='dark'] body,
+:root[data-theme='dark'] main {
+  background: var(--app-bg) !important;
+  color: var(--app-text);
 }
 
-.animate-fade-in-left {
-  animation: fadeInLeft 1s ease-out 0.3s forwards;
-  opacity: 0;
-}
-
-.animate-fade-in-right {
-  animation: fadeInRight 1s ease-out 0.5s forwards;
-  opacity: 0;
+:root[data-theme='dark'] header,
+:root[data-theme='dark'] section,
+:root[data-theme='dark'] .bg-white,
+:root[data-theme='dark'] .ant-table,
+:root[data-theme='dark'] .ant-modal-content {
+  background: var(--app-surface) !important;
+  color: var(--app-text) !important;
 }

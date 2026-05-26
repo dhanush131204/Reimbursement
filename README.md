@@ -12,7 +12,7 @@ A world-class, premium Internal Expense & Reimbursement Management SaaS platform
 
 ## Prerequisites
 Before you begin, ensure you have installed:
-1. **Node.js** (v16 or higher)
+1. **Node.js** (v16 or higher) npx prisma studio
 2. **PostgreSQL** (See Database Setup instructions below)
 
 ---

@@ -4,7 +4,7 @@ const baseQuery = fetchBaseQuery({
   baseUrl: 'http://localhost:5000',
   prepareHeaders: (headers, { getState }) => {
     const token = getState().auth.token;
-    if (token) {
+    if (token && token !== 'undefined' && token !== 'null') {
       headers.set('authorization', `Bearer ${token}`);
     }
     return headers;
@@ -29,6 +29,13 @@ export const apiSlice = createApi({
         body: credentials,
       }),
     }),
+    updateProfile: builder.mutation({
+      query: (profileData) => ({
+        url: '/api/auth/profile',
+        method: 'PUT',
+        body: profileData,
+      }),
+    }),
     getClaims: builder.query({
       query: () => '/api/claims',
       providesTags: ['Claim'],
@@ -49,13 +56,30 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ['Claim'],
     }),
+    deleteClaim: builder.mutation({
+      query: (id) => ({
+        url: `/api/claims/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Claim'],
+    }),
+    uploadFile: builder.mutation({
+      query: (formData) => ({
+        url: '/api/upload',
+        method: 'POST',
+        body: formData,
+      }),
+    }),
   }),
 });
 
 export const {
   useLoginMutation,
   useRegisterMutation,
+  useUpdateProfileMutation,
   useGetClaimsQuery,
   useCreateClaimMutation,
   useUpdateClaimStatusMutation,
+  useUploadFileMutation,
+  useDeleteClaimMutation,
 } = apiSlice;
