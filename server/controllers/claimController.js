@@ -1,4 +1,6 @@
 import { PrismaClient } from '@prisma/client';
+import { sendMail } from '../utils/emailService.js';
+
 const prisma = new PrismaClient();
 
 // @desc    Get all claims (Admin) or User's claims (Employee)
@@ -9,9 +11,9 @@ export const getClaims = async (req, res) => {
     let claims;
     if (req.user.role === 'ADMIN') {
       claims = await prisma.claim.findMany({
-        include: { 
+        include: {
           user: { select: { name: true, email: true, contactNumber: true, vizNo: true, designation: true } },
-          receipts: true 
+          receipts: true
         },
         orderBy: { createdAt: 'desc' }
       });
@@ -97,16 +99,28 @@ export const createClaim = async (req, res) => {
 // @route   PATCH /api/claims/:id/status
 // @access  Private (Admin)
 export const updateClaimStatus = async (req, res) => {
-  const { status } = req.body;
+  const { status, notes } = req.body;
   const { id } = req.params;
 
   try {
     const updatedClaim = await prisma.claim.update({
       where: { id: Number(id) },
-      data: { status },
+      data: {
+        status,
+        ...(notes && { notes })
+      },
+      include: {
+        user: { select: { name: true, email: true } },
+      },
     });
+
+    if (status === 'APPROVED' || status === 'REJECTED' || status === 'PAID') {
+      await sendMail(updatedClaim.user.email, updatedClaim.user.name, status.toLowerCase(), notes);
+    }
+
     res.json(updatedClaim);
   } catch (error) {
+    console.error('Update claim error:', error);
     res.status(500).json({ message: 'Server Error updating claim' });
   }
 };
@@ -131,11 +145,11 @@ export const deleteClaim = async (req, res) => {
     // Delete related records first to avoid foreign key constraints
     await prisma.payment.deleteMany({ where: { claimId: Number(id) } });
     await prisma.receipt.deleteMany({ where: { claimId: Number(id) } });
-    
+
     await prisma.claim.delete({
       where: { id: Number(id) },
     });
-    
+
     res.json({ message: 'Claim removed successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Server Error deleting claim' });

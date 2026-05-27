@@ -1,4 +1,4 @@
-import { Button, Modal, Table, message } from 'antd';
+import { Button, Modal, Table, message, Input } from 'antd';
 import { useState } from 'react';
 import { Car, Eye, Laptop, Plane, ShoppingBag, Trash2, Utensils, Package } from 'lucide-react';
 import { useDeleteClaimMutation, useUpdateClaimStatusMutation } from '../store/apiSlice';
@@ -19,12 +19,14 @@ const formatDate = (date) => {
   return new Date(date).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
 };
 
-const formatAmount = (amount) => `$${Number(amount || 0).toFixed(2)}`;
+const formatAmount = (amount) => `₹${Number(amount || 0).toFixed(2)}`;
 
 const ClaimsTable = ({ claims = [], loading, showEmployee = false, pagination = true, title = 'Requests', compactHeader = false, adminActions = false }) => {
   const [selectedReceiptUrl, setSelectedReceiptUrl] = useState('');
   const [selectedClaim, setSelectedClaim] = useState(null);
   const [claimToDelete, setClaimToDelete] = useState(null);
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState('');
   const [updateClaimStatus, { isLoading: isUpdating }] = useUpdateClaimStatusMutation();
   const [deleteClaim, { isLoading: isDeleting }] = useDeleteClaimMutation();
 
@@ -41,14 +43,26 @@ const ClaimsTable = ({ claims = [], loading, showEmployee = false, pagination = 
     setSelectedClaim(null);
   };
 
-  const handleStatusChange = async (status) => {
+  const handleStatusChange = async (status, notes = '') => {
     try {
-      await updateClaimStatus({ id: selectedClaim.id, status }).unwrap();
+      await updateClaimStatus({ id: selectedClaim.id, status, notes }).unwrap();
       message.success(`Request ${status.toLowerCase()} successfully`);
+      if (status === 'REJECTED') {
+        setRejectModalOpen(false);
+        setRejectionReason('');
+      }
       handleClose();
     } catch (err) {
       message.error(err?.data?.message || 'Failed to update request');
     }
+  };
+
+  const handleRejectConfirm = () => {
+    if (!rejectionReason.trim()) {
+      message.error('Please enter a reason for rejection');
+      return;
+    }
+    handleStatusChange('REJECTED', rejectionReason);
   };
 
   const handleDelete = async () => {
@@ -70,19 +84,19 @@ const ClaimsTable = ({ claims = [], loading, showEmployee = false, pagination = 
     },
     ...(showEmployee
       ? [
-          {
-            title: 'Employee',
-            key: 'employee',
-            render: (_, record) => (
-              <div className="flex items-center gap-2">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--app-primary-soft)] text-xs font-semibold text-[var(--app-primary)]">
-                  {(record.user?.name || 'U').charAt(0)}
-                </span>
-                <span className="font-medium text-[#334155]">{record.user?.name || 'Unknown'}</span>
-              </div>
-            ),
-          },
-        ]
+        {
+          title: 'Employee',
+          key: 'employee',
+          render: (_, record) => (
+            <div className="flex items-center gap-2">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--app-primary-soft)] text-xs font-semibold text-[var(--app-primary)]">
+                {(record.user?.name || 'U').charAt(0)}
+              </span>
+              <span className="font-medium text-[#334155]">{record.user?.name || 'Unknown'}</span>
+            </div>
+          ),
+        },
+      ]
       : []),
     {
       title: 'Category',
@@ -147,11 +161,11 @@ const ClaimsTable = ({ claims = [], loading, showEmployee = false, pagination = 
             pagination={
               pagination
                 ? {
-                    pageSize: 5,
-                    showSizeChanger: false,
-                    size: 'small',
-                    className: 'app-pagination px-4 py-3',
-                  }
+                  pageSize: 5,
+                  showSizeChanger: false,
+                  size: 'small',
+                  className: 'app-pagination px-4 py-3',
+                }
                 : false
             }
             className="app-table"
@@ -177,13 +191,13 @@ const ClaimsTable = ({ claims = [], loading, showEmployee = false, pagination = 
         footer={
           showEmployee && selectedClaim?.status === 'PENDING'
             ? [
-                <Button key="reject" danger loading={isUpdating} onClick={() => handleStatusChange('REJECTED')}>
-                  Reject
-                </Button>,
-                <Button key="approve" type="primary" loading={isUpdating} onClick={() => handleStatusChange('APPROVED')}>
-                  Approve
-                </Button>,
-              ]
+              <Button key="reject" danger onClick={() => setRejectModalOpen(true)}>
+                Reject
+              </Button>,
+              <Button key="approve" type="primary" loading={isUpdating} onClick={() => handleStatusChange('APPROVED')}>
+                Approve
+              </Button>,
+            ]
             : null
         }
         width={760}
@@ -216,6 +230,27 @@ const ClaimsTable = ({ claims = [], loading, showEmployee = false, pagination = 
             {isDeleting ? 'Deleting...' : 'Confirm'}
           </button>
         </div>
+      </Modal>
+
+      <Modal
+        title="Reason for Rejection"
+        open={rejectModalOpen}
+        onCancel={() => {
+          setRejectModalOpen(false);
+          setRejectionReason('');
+        }}
+        onOk={handleRejectConfirm}
+        confirmLoading={isUpdating}
+        okText="Submit Rejection"
+        okType="danger"
+      >
+        <p className="mb-2 text-sm text-[#4b5563]">Please provide a reason for rejecting this claim. This will be sent to the employee.</p>
+        <Input.TextArea
+          rows={4}
+          value={rejectionReason}
+          onChange={(e) => setRejectionReason(e.target.value)}
+          placeholder="Enter the reason here..."
+        />
       </Modal>
     </>
   );

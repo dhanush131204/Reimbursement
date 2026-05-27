@@ -49,10 +49,10 @@ export const apiSlice = createApi({
       invalidatesTags: ['Claim'],
     }),
     updateClaimStatus: builder.mutation({
-      query: ({ id, status }) => ({
+      query: ({ id, status, notes }) => ({
         url: `/api/claims/${id}/status`,
         method: 'PATCH',
-        body: { status },
+        body: { status, notes },
       }),
       invalidatesTags: ['Claim'],
     }),
@@ -70,6 +70,33 @@ export const apiSlice = createApi({
         body: formData,
       }),
     }),
+    getAdminUsers: builder.query({
+      query: () => '/api/auth/users',
+      providesTags: ['User'],
+    }),
+    createAdminUser: builder.mutation({
+      query: (userData) => ({
+        url: '/api/auth/users',
+        method: 'POST',
+        body: userData,
+      }),
+      invalidatesTags: ['User'],
+    }),
+    updateAdminUser: builder.mutation({
+      query: ({ id, ...patch }) => ({
+        url: `/api/auth/users/${id}`,
+        method: 'PUT',
+        body: patch,
+      }),
+      invalidatesTags: ['User'],
+    }),
+    deleteAdminUser: builder.mutation({
+      query: (id) => ({
+        url: `/api/auth/users/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['User'],
+    }),
   }),
 });
 
@@ -82,4 +109,8 @@ export const {
   useUpdateClaimStatusMutation,
   useUploadFileMutation,
   useDeleteClaimMutation,
+  useGetAdminUsersQuery,
+  useCreateAdminUserMutation,
+  useUpdateAdminUserMutation,
+  useDeleteAdminUserMutation,
 } = apiSlice;

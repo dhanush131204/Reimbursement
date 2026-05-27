@@ -30,9 +30,8 @@ const MainLayout = () => {
       )}
 
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-[220px] shrink-0 transform transition-transform duration-200 lg:relative lg:translate-x-0 ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 w-[280px] shrink-0 transform transition-transform duration-200 lg:relative lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
       >
         <AppSidebar onLogout={handleLogout} onNavigate={() => setSidebarOpen(false)} />
       </div>

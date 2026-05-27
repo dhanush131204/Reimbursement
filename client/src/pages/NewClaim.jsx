@@ -108,8 +108,8 @@ const NewClaim = () => {
             <Form.Item name="purpose" label="Purpose of Expense" rules={[{ required: true, message: 'Please enter purpose' }]}>
               <Input placeholder="e.g. Client lunch at Grand Bistro" />
             </Form.Item>
-            <Form.Item name="totalAmount" label="Total Amount ($)" rules={[{ required: true, message: 'Please enter amount' }]}>
-              <InputNumber min={0} precision={2} placeholder="$ 0.00" className="w-full" />
+            <Form.Item name="totalAmount" label="Total Amount (₹)" rules={[{ required: true, message: 'Please enter amount' }]}>
+              <InputNumber min={0} precision={2} placeholder="₹ 0.00" className="w-full" />
             </Form.Item>
             <Form.Item name="amountSpentOn" label="Amount Spent On">
               <Input placeholder="Vendor or Merchant name" />

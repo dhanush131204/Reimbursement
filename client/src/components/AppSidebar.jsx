@@ -44,7 +44,7 @@ const AppSidebar = ({ onLogout, onNavigate }) => {
   return (
     <aside className="flex h-full w-full flex-col border-r border-[#d7e4ea] bg-[#f0fbff]">
       <div className="flex h-[78px] items-center px-5">
-        <img src={Frame1Image} alt="Third Vizion" className="h-12 w-full object-contain object-left" />
+        <img src={Frame1Image} alt="Third Vizion" className="h-130 w-full object-contain object-left" />
       </div>
 
       <nav className={`flex-1 px-3 ${isAdmin ? 'space-y-2 py-5' : 'space-y-1.5 py-02'}`}>
@@ -59,9 +59,8 @@ const AppSidebar = ({ onLogout, onNavigate }) => {
               key={item.name}
               type="button"
               onClick={() => goTo(item.path)}
-              className={`relative flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left transition-colors ${isAdmin ? 'text-xs' : 'text-sm'} ${
-                isActive ? 'bg-[#d8f5ff] font-semibold text-[#172033]' : 'text-[#7a8793] hover:bg-white hover:text-[#172033]'
-              }`}
+              className={`relative flex w-full items-center gap-3 rounded-md px-7 py-2.5 text-left transition-colors ${isAdmin ? 'text-xs' : 'text-sm'} ${isActive ? 'bg-[#d8f5ff] font-semibold text-[#172033]' : 'text-[#7a8793] hover:bg-white hover:text-[#172033]'
+                }`}
             >
               <Icon className={`h-4 w-4 ${isActive ? 'text-[#00aeef]' : 'text-[#9aa4ad]'}`} />
               <span>{item.name}</span>

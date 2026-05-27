@@ -4,7 +4,7 @@ import { Button, Form, Input, Select, message } from 'antd';
 import { BriefcaseBusiness, Landmark } from 'lucide-react';
 import FormSection from '../components/FormSection';
 import PageHeader from '../components/PageHeader';
-import { getAdminUsers, upsertAdminUser } from '../utils/adminUsersStorage';
+import { useGetAdminUsersQuery, useCreateAdminUserMutation, useUpdateAdminUserMutation } from '../store/apiSlice';
 
 const AdminUserForm = () => {
   const [form] = Form.useForm();
@@ -12,9 +12,13 @@ const AdminUserForm = () => {
   const { id } = useParams();
   const isEdit = Boolean(id);
 
+  const { data: users = [] } = useGetAdminUsersQuery(undefined, { skip: !isEdit });
+  const [createUser, { isLoading: isCreating }] = useCreateAdminUserMutation();
+  const [updateUser, { isLoading: isUpdating }] = useUpdateAdminUserMutation();
+
   useEffect(() => {
-    if (isEdit) {
-      const user = getAdminUsers().find((item) => String(item.id) === String(id));
+    if (isEdit && users.length) {
+      const user = users.find((item) => String(item.id) === String(id));
       if (user) {
         form.setFieldsValue(user);
       } else {
@@ -22,15 +26,21 @@ const AdminUserForm = () => {
         navigate('/users');
       }
     }
-  }, [form, id, isEdit, navigate]);
+  }, [form, id, isEdit, navigate, users]);
 
-  const handleSubmit = (values) => {
-    upsertAdminUser({
-      ...values,
-      id: isEdit ? Number(id) : Date.now(),
-    });
-    message.success(isEdit ? 'User updated successfully' : 'User created successfully');
-    navigate('/users');
+  const handleSubmit = async (values) => {
+    try {
+      if (isEdit) {
+        await updateUser({ id: Number(id), ...values }).unwrap();
+        message.success('User updated successfully');
+      } else {
+        await createUser(values).unwrap();
+        message.success('User created and welcome email sent!');
+      }
+      navigate('/users');
+    } catch (err) {
+      message.error(err?.data?.message || 'Failed to save user');
+    }
   };
 
   return (
@@ -94,7 +104,7 @@ const AdminUserForm = () => {
         </FormSection>
 
         <div className="flex justify-end border-t border-[#d7e0e8] pt-4">
-          <Button type="primary" htmlType="submit" className="h-9 rounded-md px-8 text-xs">
+          <Button type="primary" htmlType="submit" loading={isCreating || isUpdating} className="h-9 rounded-md px-8 text-xs">
             {isEdit ? 'Update user' : 'Create user'}
           </Button>
         </div>
