@@ -10,6 +10,9 @@ import Pending from './pages/Pending';
 import Rejected from './pages/Rejected';
 import ExpenseHistory from './pages/ExpenseHistory';
 import Settings from './pages/Settings';
+import Payments from './pages/Payments';
+import AdminUsers from './pages/AdminUsers';
+import AdminUserForm from './pages/AdminUserForm';
 
 const ProtectedRoute = ({ children }) => {
   const { userInfo } = useSelector((state) => state.auth);
@@ -38,6 +41,10 @@ function App() {
         <Route path="pending" element={<Pending />} />
         <Route path="rejected" element={<Rejected />} />
         <Route path="history" element={<ExpenseHistory />} />
+        <Route path="users" element={<AdminUsers />} />
+        <Route path="users/new" element={<AdminUserForm />} />
+        <Route path="users/:id/edit" element={<AdminUserForm />} />
+        <Route path="payments" element={<Payments />} />
         <Route path="settings" element={<Settings />} />
       </Route>
     </Routes>

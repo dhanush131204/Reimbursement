@@ -16,6 +16,8 @@ const MainLayout = () => {
     navigate('/login');
   };
 
+  const isAdmin = userInfo?.role === 'ADMIN';
+
   return (
     <div className="flex h-screen overflow-hidden bg-white text-[#111827]">
       {sidebarOpen && (
@@ -37,8 +39,8 @@ const MainLayout = () => {
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <TopBar user={userInfo} onMenu={() => setSidebarOpen(true)} />
-        <main className="flex-1 overflow-y-auto overflow-x-hidden bg-white px-6 py-6">
-          <div className="mx-auto w-full max-w-[1240px]">
+        <main className={`flex-1 overflow-y-auto overflow-x-hidden bg-white px-6 ${isAdmin ? 'py-8' : 'py-6'}`}>
+          <div className={`mx-auto w-full ${isAdmin ? 'max-w-[1120px]' : 'max-w-[1240px]'}`}>
             <Outlet />
           </div>
         </main>

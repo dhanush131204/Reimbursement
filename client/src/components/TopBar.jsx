@@ -2,7 +2,7 @@ import { Menu } from 'lucide-react';
 import { Avatar } from 'antd';
 
 const TopBar = ({ user, onMenu }) => (
-  <header className="flex h-14 items-center justify-between border-b border-[#d7e4ea] bg-white px-5">
+  <header className="flex h-14 items-center justify-between border-b border-[#cfe6ef] bg-white px-5">
     <button
       type="button"
       onClick={onMenu}
@@ -17,7 +17,7 @@ const TopBar = ({ user, onMenu }) => (
         <p className="text-xs font-semibold leading-tight text-[#111827]">{user?.name || 'User'}</p>
         <p className="text-[10px] leading-tight text-[#64748b]">{user?.designation || (user?.role === 'ADMIN' ? 'Admin' : 'Employee')}</p>
       </div>
-      <Avatar size={34} className="bg-[#d8f5ff] text-[#00aeef]">
+      <Avatar size={34} src={user?.role === 'ADMIN' ? 'https://i.pravatar.cc/80?img=12' : undefined} className="bg-[#d8f5ff] text-[#00aeef]">
         {user?.name?.charAt(0) || 'U'}
       </Avatar>
     </div>

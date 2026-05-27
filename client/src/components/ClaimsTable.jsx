@@ -1,7 +1,7 @@
 import { Button, Modal, Table, message } from 'antd';
 import { useState } from 'react';
-import { Car, Eye, Laptop, Plane, ShoppingBag, Utensils, Package } from 'lucide-react';
-import { useUpdateClaimStatusMutation } from '../store/apiSlice';
+import { Car, Eye, Laptop, Plane, ShoppingBag, Trash2, Utensils, Package } from 'lucide-react';
+import { useDeleteClaimMutation, useUpdateClaimStatusMutation } from '../store/apiSlice';
 import StatusBadge from './StatusBadge';
 
 const categoryIcons = {
@@ -21,10 +21,12 @@ const formatDate = (date) => {
 
 const formatAmount = (amount) => `$${Number(amount || 0).toFixed(2)}`;
 
-const ClaimsTable = ({ claims = [], loading, showEmployee = false, pagination = true, title = 'Requests' }) => {
+const ClaimsTable = ({ claims = [], loading, showEmployee = false, pagination = true, title = 'Requests', compactHeader = false, adminActions = false }) => {
   const [selectedReceiptUrl, setSelectedReceiptUrl] = useState('');
   const [selectedClaim, setSelectedClaim] = useState(null);
+  const [claimToDelete, setClaimToDelete] = useState(null);
   const [updateClaimStatus, { isLoading: isUpdating }] = useUpdateClaimStatusMutation();
+  const [deleteClaim, { isLoading: isDeleting }] = useDeleteClaimMutation();
 
   const handleView = (record) => {
     const fileUrl = record.receipts?.[0]?.fileUrl || record.receiptUrl;
@@ -46,6 +48,16 @@ const ClaimsTable = ({ claims = [], loading, showEmployee = false, pagination = 
       handleClose();
     } catch (err) {
       message.error(err?.data?.message || 'Failed to update request');
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      await deleteClaim(claimToDelete.id).unwrap();
+      message.success('Request deleted successfully');
+      setClaimToDelete(null);
+    } catch (err) {
+      message.error(err?.data?.message || 'Failed to delete request');
     }
   };
 
@@ -93,25 +105,38 @@ const ClaimsTable = ({ claims = [], loading, showEmployee = false, pagination = 
       title: 'Actions',
       key: 'actions',
       render: (_, record) => (
-        <Button size="small" icon={<Eye className="h-3.5 w-3.5" />} className="h-8 rounded-md border-[#d7e0e8] px-3 text-xs text-[#172033]" onClick={() => handleView(record)}>
-          View
-        </Button>
+        adminActions ? (
+          <div className="flex items-center gap-3">
+            <button type="button" aria-label="View" className="text-[#006bd6]" onClick={() => handleView(record)}>
+              <Eye className="h-4 w-4" />
+            </button>
+            <button type="button" aria-label="Delete" className="text-[#4b5563]" onClick={() => setClaimToDelete(record)}>
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
+        ) : (
+          <Button size="small" icon={<Eye className="h-3.5 w-3.5" />} className="h-8 rounded-md border-[#d7e0e8] px-3 text-xs text-[#172033]" onClick={() => handleView(record)}>
+            View
+          </Button>
+        )
       ),
     },
   ];
 
   return (
     <>
-      <div className="w-full overflow-hidden rounded-lg border border-[#d7e0e8] bg-white">
-        <div className="flex flex-col gap-2 border-b border-[#edf2f7] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="text-sm font-semibold text-[#172033]">{title}</h2>
-            <p className="text-xs text-[#64748b]">Review invoice details, status, and supporting documents.</p>
+      <div className={`w-full overflow-hidden bg-white ${compactHeader ? '' : 'rounded-lg border border-[#d7e0e8]'}`}>
+        {!compactHeader && (
+          <div className="flex flex-col gap-2 px-5 pb-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-sm font-semibold text-[#172033]">{title}</h2>
+              <p className="text-xs text-[#64748b]">Review invoice details, status, and supporting documents.</p>
+            </div>
+            <div className="rounded-full bg-[#f3f6fa] px-3 py-1 text-xs font-semibold text-[#475467]">
+              {claims.length} {claims.length === 1 ? 'record' : 'records'}
+            </div>
           </div>
-          <div className="rounded-full bg-[#f3f6fa] px-3 py-1 text-xs font-semibold text-[#475467]">
-            {claims.length} {claims.length === 1 ? 'record' : 'records'}
-          </div>
-        </div>
+        )}
         <div className="max-w-full overflow-hidden">
           <Table
             dataSource={claims}
@@ -170,6 +195,27 @@ const ClaimsTable = ({ claims = [], loading, showEmployee = false, pagination = 
         ) : (
           <img src={selectedReceiptUrl} alt="Receipt" className="max-h-[70vh] w-full rounded-md object-contain" />
         )}
+      </Modal>
+
+      <Modal
+        open={Boolean(claimToDelete)}
+        centered
+        width={360}
+        footer={null}
+        closable={false}
+        onCancel={() => setClaimToDelete(null)}
+        className="delete-modal"
+        rootClassName="delete-modal-root"
+      >
+        <p className="mb-5 text-center text-base font-medium text-[#172033]">Are you sure want to delete</p>
+        <div className="flex justify-center gap-5">
+          <button type="button" onClick={() => setClaimToDelete(null)} className="h-9 w-28 rounded-md border border-[#d7e0e8] bg-white text-sm text-[#667085]">
+            Cancel
+          </button>
+          <button type="button" onClick={handleDelete} disabled={isDeleting} className="h-9 w-28 rounded-md bg-[#c90010] text-sm font-semibold text-white disabled:opacity-70">
+            {isDeleting ? 'Deleting...' : 'Confirm'}
+          </button>
+        </div>
       </Modal>
     </>
   );

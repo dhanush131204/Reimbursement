@@ -5,13 +5,15 @@ import {
   CircleCheckBig,
   Clock3,
   CircleX,
+  CreditCard,
   History,
   Settings,
   LogOut,
 } from 'lucide-react';
+import { useSelector } from 'react-redux';
 import Frame1Image from '../assets/image/Frame1.png';
 
-const navItems = [
+const employeeNavItems = [
   { name: 'Dashboard', path: '/', icon: LayoutDashboard },
   { name: 'New Request', path: '/claims/new', icon: PlusCircle },
   { name: 'Approved', path: '/approved', icon: CircleCheckBig },
@@ -21,9 +23,18 @@ const navItems = [
   { name: 'Settings', path: '/settings', icon: Settings },
 ];
 
+const adminNavItems = [
+  { name: 'Dashboard', path: '/', icon: LayoutDashboard },
+  { name: 'Add User', path: '/users', icon: PlusCircle },
+  { name: 'Batch Payments', path: '/payments', icon: CreditCard },
+];
+
 const AppSidebar = ({ onLogout, onNavigate }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { userInfo } = useSelector((state) => state.auth);
+  const isAdmin = userInfo?.role === 'ADMIN';
+  const navItems = isAdmin ? adminNavItems : employeeNavItems;
 
   const goTo = (path) => {
     navigate(path);
@@ -36,16 +47,19 @@ const AppSidebar = ({ onLogout, onNavigate }) => {
         <img src={Frame1Image} alt="Third Vizion" className="h-12 w-full object-contain object-left" />
       </div>
 
-      <nav className="flex-1 space-y-1.5 px-3 py-02">
+      <nav className={`flex-1 px-3 ${isAdmin ? 'space-y-2 py-5' : 'space-y-1.5 py-02'}`}>
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = location.pathname === item.path || (item.path === '/history' && location.pathname === '/claims');
+          const isActive =
+            location.pathname === item.path ||
+            (item.path === '/history' && location.pathname === '/claims') ||
+            (item.path === '/users' && location.pathname.startsWith('/users'));
           return (
             <button
               key={item.name}
               type="button"
               onClick={() => goTo(item.path)}
-              className={`relative flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm transition-colors ${
+              className={`relative flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left transition-colors ${isAdmin ? 'text-xs' : 'text-sm'} ${
                 isActive ? 'bg-[#d8f5ff] font-semibold text-[#172033]' : 'text-[#7a8793] hover:bg-white hover:text-[#172033]'
               }`}
             >
