@@ -8,6 +8,7 @@ import {
   CreditCard,
   History,
   Settings,
+  UserRound,
   LogOut,
 } from 'lucide-react';
 import { useSelector } from 'react-redux';
@@ -15,11 +16,7 @@ import Frame1Image from '../assets/image/Frame1.png';
 
 const employeeNavItems = [
   { name: 'Dashboard', path: '/', icon: LayoutDashboard },
-  { name: 'New Request', path: '/claims/new', icon: PlusCircle },
-  { name: 'Approved', path: '/approved', icon: CircleCheckBig },
-  { name: 'Pending', path: '/pending', icon: Clock3 },
-  { name: 'Rejected', path: '/rejected', icon: CircleX },
-  { name: 'Expense History', path: '/history', icon: History },
+  { name: 'New Reimbursement', path: '/claims/new', icon: PlusCircle },
   { name: 'Settings', path: '/settings', icon: Settings },
 ];
 
@@ -27,6 +24,7 @@ const adminNavItems = [
   { name: 'Dashboard', path: '/', icon: LayoutDashboard },
   { name: 'Add User', path: '/users', icon: PlusCircle },
   { name: 'Batch Payments', path: '/payments', icon: CreditCard },
+  { name: 'Profile', path: '/settings', icon: UserRound },
 ];
 
 const AppSidebar = ({ onLogout, onNavigate }) => {
@@ -53,7 +51,8 @@ const AppSidebar = ({ onLogout, onNavigate }) => {
           const isActive =
             location.pathname === item.path ||
             (item.path === '/history' && location.pathname === '/claims') ||
-            (item.path === '/users' && location.pathname.startsWith('/users'));
+            (item.path === '/users' && location.pathname.startsWith('/users')) ||
+            (item.path === '/settings' && location.pathname === '/settings');
           return (
             <button
               key={item.name}

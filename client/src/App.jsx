@@ -35,12 +35,12 @@ function App() {
         }
       >
         <Route index element={<Dashboard />} />
-        <Route path="claims" element={<ExpenseHistory />} />
+        <Route path="claims" element={<Navigate to="/" replace />} />
         <Route path="claims/new" element={<NewClaim />} />
-        <Route path="approved" element={<Approved />} />
-        <Route path="pending" element={<Pending />} />
-        <Route path="rejected" element={<Rejected />} />
-        <Route path="history" element={<ExpenseHistory />} />
+        <Route path="approved" element={<Navigate to="/" replace />} />
+        <Route path="pending" element={<Navigate to="/" replace />} />
+        <Route path="rejected" element={<Navigate to="/" replace />} />
+        <Route path="history" element={<Navigate to="/" replace />} />
         <Route path="users" element={<AdminUsers />} />
         <Route path="users/new" element={<AdminUserForm />} />
         <Route path="users/:id/edit" element={<AdminUserForm />} />

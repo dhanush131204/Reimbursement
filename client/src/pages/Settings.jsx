@@ -1,35 +1,50 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { CheckCircle, Palette, UserRound, BellRing } from 'lucide-react';
-import { Button, Form, Input, Switch, message } from 'antd';
+import { useSearchParams } from 'react-router-dom';
+import { CheckCircle, UserRound, BellRing, Pencil } from 'lucide-react';
+import { Button, Form, Input, Modal, Switch, Upload, message } from 'antd';
 import PageHeader from '../components/PageHeader';
-import { useUpdateProfileMutation } from '../store/apiSlice';
+import { useUpdateProfileMutation, useUploadFileMutation } from '../store/apiSlice';
 import { setCredentials } from '../store/authSlice';
 
-const colors = ['#19c6ef', '#009fbd', '#9d3b2d', '#1155c9', '#4b47b5', '#151922'];
-const themeStorageKey = 'appTheme';
 
-const applyTheme = ({ accentColor, mode }) => {
-  const root = document.documentElement;
-  root.style.setProperty('--app-primary', accentColor);
-  root.style.setProperty('--app-primary-dark', accentColor);
-  root.style.setProperty('--app-primary-soft', `${accentColor}22`);
-  root.dataset.theme = mode;
+
+
+
+const getExternalUrl = (url) => {
+  if (!url) return null;
+  return url.startsWith('http') ? url : `http://localhost:5000${url}`;
 };
 
 const Settings = () => {
   const { userInfo } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [form] = Form.useForm();
   const [isEditing, setIsEditing] = useState(false);
-  const [theme, setTheme] = useState(() => {
-    const savedTheme = localStorage.getItem(themeStorageKey);
-    return savedTheme ? JSON.parse(savedTheme) : { accentColor: colors[0], mode: 'light' };
-  });
+  const [fileList, setFileList] = useState([]);
+  const [profileImageFile, setProfileImageFile] = useState(null);
+  const [previewImage, setPreviewImage] = useState(
+    userInfo?.profileImageUrl
+      ? userInfo.profileImageUrl.startsWith('http')
+        ? userInfo.profileImageUrl
+        : `http://localhost:5000${userInfo.profileImageUrl}`
+      : null,
+  );
+
+  const [removeProfileImage, setRemoveProfileImage] = useState(false);
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [updateProfile, { isLoading }] = useUpdateProfileMutation();
+  const [uploadFile] = useUploadFileMutation();
   const name = userInfo?.name || 'Santhosh';
   const accountRoleLabel = userInfo?.role === 'ADMIN' ? 'Admin' : 'Employee';
   const designation = userInfo?.designation || accountRoleLabel;
+  const isProfileEditRequested = searchParams.get('edit') === 'profile';
+  const showEditForm = isEditing || isProfileEditRequested;
+  const pageTitle = userInfo?.role === 'ADMIN' ? 'Admin Profile' : 'Settings';
+  const pageSubtitle = userInfo?.role === 'ADMIN'
+    ? 'Update your admin account details and preferences.'
+    : 'Manage your profile, account status, and app preferences.';
 
   useEffect(() => {
     form.setFieldsValue({
@@ -42,9 +57,38 @@ const Settings = () => {
   }, [form, userInfo]);
 
   useEffect(() => {
-    applyTheme(theme);
-    localStorage.setItem(themeStorageKey, JSON.stringify(theme));
-  }, [theme]);
+    setPreviewImage(getExternalUrl(userInfo?.profileImageUrl));
+  }, [userInfo?.profileImageUrl]);
+
+  const handlePreviewClick = () => {
+    if (previewImage) {
+      setIsViewerOpen(true);
+    }
+  };
+
+  const customUpload = async (options) => {
+    try {
+      const { file, onSuccess, onError } = options;
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const uploadResult = await uploadFile(formData).unwrap();
+      
+      const payload = {
+        profileImageUrl: uploadResult.url,
+      };
+      
+      const updatedUser = await updateProfile(payload).unwrap();
+      dispatch(setCredentials(updatedUser));
+      message.success('Profile picture updated successfully');
+      onSuccess('ok');
+    } catch (err) {
+      message.error(err?.data?.message || 'Failed to update profile picture');
+      onError(err);
+    }
+  };
+
+
 
   const handleCancel = () => {
     form.setFieldsValue({
@@ -55,28 +99,78 @@ const Settings = () => {
       designation: userInfo?.designation || '',
     });
     setIsEditing(false);
+    setSearchParams({});
+    setFileList([]);
+    setProfileImageFile(null);
+    setRemoveProfileImage(false);
+    setPreviewImage(getExternalUrl(userInfo?.profileImageUrl));
   };
 
   const handleSave = async (values) => {
     try {
-      const updatedUser = await updateProfile(values).unwrap();
+      const payload = { ...values };
+
+      if (profileImageFile) {
+        const formData = new FormData();
+        formData.append('file', profileImageFile);
+        const uploadResult = await uploadFile(formData).unwrap();
+        payload.profileImageUrl = uploadResult.url;
+        setRemoveProfileImage(false);
+      } else if (removeProfileImage) {
+        payload.profileImageUrl = null;
+      }
+
+      const updatedUser = await updateProfile(payload).unwrap();
       dispatch(setCredentials(updatedUser));
       message.success('Profile updated successfully');
       setIsEditing(false);
+      setSearchParams({});
     } catch (err) {
       message.error(err?.data?.message || 'Failed to update profile');
     }
   };
 
+  const handleUploadChange = ({ fileList: newFileList }) => {
+    const latestFile = newFileList.slice(-1);
+    setFileList(latestFile);
+    setRemoveProfileImage(false);
+
+    if (latestFile[0]?.originFileObj) {
+      setProfileImageFile(latestFile[0].originFileObj);
+      setPreviewImage(URL.createObjectURL(latestFile[0].originFileObj));
+    }
+  };
+
+  const handleRemoveProfileImage = () => {
+    setFileList([]);
+    setProfileImageFile(null);
+    setPreviewImage(null);
+    setRemoveProfileImage(true);
+  };
+
   return (
     <div>
-      <PageHeader title="Settings" subtitle="Manage your profile, account status, and app preferences." />
+      <PageHeader title={pageTitle} subtitle={pageSubtitle} />
 
       <div className="mb-5 overflow-hidden rounded-lg border border-[#d7e0e8] bg-white">
         <div className="h-28" style={{ background: 'linear-gradient(90deg, var(--app-primary), var(--app-primary-dark))' }} />
         <div className="-mt-10 flex items-end gap-4 px-6 pb-6">
-          <div className="flex h-24 w-24 items-center justify-center rounded-lg border-4 border-white bg-[var(--app-primary-soft)] text-3xl font-semibold text-[var(--app-primary)] shadow-sm">
-            {name.charAt(0)}
+          <div
+            className={`relative flex h-24 w-24 items-center justify-center overflow-hidden rounded-lg border-4 border-white bg-[var(--app-primary-soft)] text-3xl font-semibold text-[var(--app-primary)] shadow-sm ${previewImage ? 'cursor-pointer' : ''}`}
+            onClick={handlePreviewClick}
+          >
+            {previewImage ? (
+              <img src={previewImage} alt="Profile" className="h-full w-full object-cover" />
+            ) : (
+              name.charAt(0)
+            )}
+            <div className="absolute right-1 bottom-1 flex h-7 w-7 items-center justify-center" onClick={(e) => e.stopPropagation()}>
+              <Upload showUploadList={false} customRequest={customUpload} accept="image/*">
+                <div className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-white/90 text-[var(--app-primary)] shadow-sm hover:bg-white transition-colors">
+                  <Pencil className="h-4 w-4" />
+                </div>
+              </Upload>
+            </div>
           </div>
           <div className="pb-2">
             <h2 className="text-2xl font-semibold text-[#111827]">{name}</h2>
@@ -85,126 +179,7 @@ const Settings = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_320px]">
-        <div className="space-y-5">
-          <section className="rounded-lg border border-[#d7e0e8] bg-white p-5">
-            <div className="mb-4 flex items-center justify-between gap-3 border-b border-[#edf2f7] pb-3">
-              <div className="flex items-center gap-2">
-                <UserRound className="h-4 w-4 text-[var(--app-primary)]" />
-                <h3 className="text-sm font-semibold text-[#172033]">Personal Information</h3>
-              </div>
-              {!isEditing && (
-                <Button type="primary" size="small" onClick={() => setIsEditing(true)} className="h-8 rounded-md px-4 text-xs">
-                  Edit Profile
-                </Button>
-              )}
-            </div>
-            {isEditing ? (
-              <Form form={form} layout="vertical" onFinish={handleSave} requiredMark={false}>
-                <div className="grid grid-cols-1 gap-x-5 md:grid-cols-2">
-                  <Form.Item
-                    name="name"
-                    label={<span className="text-xs font-medium text-[#64748b]">Full Name</span>}
-                    rules={[{ required: true, message: 'Please enter your full name' }]}
-                  >
-                    <Input className="h-9 rounded-md" />
-                  </Form.Item>
-                  <Form.Item name="vizNo" label={<span className="text-xs font-medium text-[#64748b]">VIZ No</span>}>
-                    <Input className="h-9 rounded-md" placeholder="Enter VIZ number" />
-                  </Form.Item>
-                  <Form.Item
-                    name="email"
-                    label={<span className="text-xs font-medium text-[#64748b]">Email Address</span>}
-                    rules={[
-                      { required: true, message: 'Please enter your email address' },
-                      { type: 'email', message: 'Please enter a valid email address' },
-                    ]}
-                  >
-                    <Input className="h-9 rounded-md" />
-                  </Form.Item>
-                  <Form.Item name="contactNumber" label={<span className="text-xs font-medium text-[#64748b]">Mobile Number</span>}>
-                    <Input className="h-9 rounded-md" />
-                  </Form.Item>
-                  <Form.Item name="designation" label={<span className="text-xs font-medium text-[#64748b]">Job Role / Designation</span>}>
-                    <Input className="h-9 rounded-md" placeholder="Designer, Developer, Finance, etc." />
-                  </Form.Item>
-                </div>
-                <div className="flex justify-end gap-2">
-                  <Button onClick={handleCancel} className="h-8 rounded-md px-4 text-xs">
-                    Cancel
-                  </Button>
-                  <Button type="primary" htmlType="submit" loading={isLoading} className="h-8 rounded-md px-4 text-xs">
-                    Save Changes
-                  </Button>
-                </div>
-              </Form>
-            ) : (
-              <div className="grid grid-cols-1 gap-y-4 text-sm md:grid-cols-2">
-                <div>
-                  <p className="text-xs text-[#64748b]">Full Name</p>
-                  <p className="font-semibold text-[#172033]">{name}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-[#64748b]">VIZ No</p>
-                  <p className="font-semibold text-[#172033]">{userInfo?.vizNo || 'Not assigned'}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-[#64748b]">Email Address</p>
-                  <p className="font-semibold text-[#172033]">{userInfo?.email || 'Not provided'}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-[#64748b]">Mobile Number</p>
-                  <p className="font-semibold text-[#172033]">{userInfo?.contactNumber || 'Not provided'}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-[#64748b]">Job Role / Designation</p>
-                  <p className="font-semibold text-[#172033]">{designation}</p>
-                </div>
-              </div>
-            )}
-          </section>
-
-          <section className="rounded-lg border border-[#d7e0e8] bg-white p-5">
-            <div className="mb-4 flex items-center gap-2 border-b border-[#edf2f7] pb-3">
-              <Palette className="h-4 w-4 text-[var(--app-primary)]" />
-              <h3 className="text-sm font-semibold text-[#172033]">Theme Customization</h3>
-            </div>
-            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-[#64748b]">Primary Accent Color</p>
-            <div className="mb-5 flex gap-3">
-              {colors.map((color, index) => (
-                <button
-                  type="button"
-                  key={color}
-                  aria-label={`Use accent color ${index + 1}`}
-                  onClick={() => setTheme((currentTheme) => ({ ...currentTheme, accentColor: color }))}
-                  className={`h-9 w-9 rounded-full ${theme.accentColor === color ? 'ring-2 ring-[var(--app-primary)] ring-offset-2' : ''}`}
-                  style={{ backgroundColor: color }}
-                />
-              ))}
-            </div>
-            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-[#64748b]">Appearance Mode</p>
-            <div className="inline-flex rounded-lg border border-[#d7e0e8] bg-[#f8fbfd] p-1">
-              <button
-                type="button"
-                onClick={() => setTheme((currentTheme) => ({ ...currentTheme, mode: 'light' }))}
-                className={`rounded-md px-8 py-2 text-xs font-semibold ${
-                  theme.mode === 'light' ? 'bg-white text-[#172033] shadow-sm' : 'text-[#64748b]'
-                }`}
-              >
-                Light
-              </button>
-              <button
-                type="button"
-                onClick={() => setTheme((currentTheme) => ({ ...currentTheme, mode: 'dark' }))}
-                className={`rounded-md px-8 py-2 text-xs font-semibold ${
-                  theme.mode === 'dark' ? 'bg-[#172033] text-white shadow-sm' : 'text-[#64748b]'
-                }`}
-              >
-                Dark
-              </button>
-            </div>
-          </section>
-        </div>
+      <div className="max-w-2xl">
 
         <div className="space-y-5">
           <section className="rounded-lg border border-[#d7e0e8] bg-white p-5">
@@ -236,6 +211,17 @@ const Settings = () => {
           </section>
         </div>
       </div>
+      <Modal
+        open={isViewerOpen}
+        footer={null}
+        onCancel={() => setIsViewerOpen(false)}
+        centered
+        bodyStyle={{ padding: 0 }}
+      >
+        {previewImage && (
+          <img src={previewImage} alt="Profile Preview" className="w-full" />
+        )}
+      </Modal>
     </div>
   );
 };
