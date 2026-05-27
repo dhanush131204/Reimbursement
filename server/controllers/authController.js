@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import generateToken from '../utils/jwt.js';
+import { sendMail } from '../utils/emailService.js';
 
 const prisma = new PrismaClient();
 
@@ -28,6 +29,7 @@ export const authUser = async (req, res) => {
       res.status(401).json({ message: 'Invalid email or password' });
     }
   } catch (error) {
+    console.error('Login Error:', error);
     res.status(500).json({ message: 'Server Error' });
   }
 };
@@ -74,6 +76,7 @@ export const registerUser = async (req, res) => {
       res.status(400).json({ message: 'Invalid user data' });
     }
   } catch (error) {
+    console.error('Registration Error:', error);
     res.status(500).json({ message: 'Server Error' });
   }
 };
@@ -117,6 +120,83 @@ export const updateUserProfile = async (req, res) => {
       token: generateToken(user.id, user.role),
     });
   } catch (error) {
+    console.error('Update Profile Error:', error);
     res.status(500).json({ message: 'Server Error updating profile' });
   }
 };
+
+export const getUsers = async (req, res) => {
+  try {
+    const users = await prisma.user.findMany({
+      select: { id: true, name: true, email: true, contactNumber: true, vizNo: true, designation: true, role: true },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error fetching users' });
+  }
+};
+
+export const createUser = async (req, res) => {
+  const { name, email, password, contactNumber, vizNo, designation, role } = req.body;
+  try {
+    const userExists = await prisma.user.findUnique({ where: { email } });
+    if (userExists) return res.status(400).json({ message: 'User already exists' });
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = password ? await bcrypt.hash(password, salt) : await bcrypt.hash('password123', salt);
+
+    const user = await prisma.user.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+        contactNumber: contactNumber || null,
+        vizNo: vizNo || null,
+        designation: designation || null,
+        role: role === 'Admin' ? 'ADMIN' : 'EMPLOYEE'
+      }
+    });
+
+    try {
+      await sendMail(email, name, "created", "Your employee account has been set up successfully by the administrator.");
+    } catch (err) {
+      console.log('Failed to send welcome email', err);
+    }
+
+    res.status(201).json(user);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error creating user' });
+  }
+};
+
+export const updateUser = async (req, res) => {
+  const { name, email, contactNumber, vizNo, designation, role } = req.body;
+  try {
+    const user = await prisma.user.update({
+      where: { id: Number(req.params.id) },
+      data: {
+        name,
+        email,
+        contactNumber: contactNumber || null,
+        vizNo: vizNo || null,
+        designation: designation || null,
+        role: role === 'Admin' ? 'ADMIN' : 'EMPLOYEE'
+      }
+    });
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error updating user' });
+  }
+};
+
+export const deleteUser = async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    await prisma.user.delete({ where: { id } });
+    res.json({ message: 'User removed' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error deleting user (may be tied to claims)' });
+  }
+};
+

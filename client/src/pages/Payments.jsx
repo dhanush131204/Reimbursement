@@ -5,12 +5,8 @@ import { useGetClaimsQuery } from '../store/apiSlice';
 import PageHeader from '../components/PageHeader';
 import StatusBadge from '../components/StatusBadge';
 
-const fallbackRows = [
-  { id: 1, vizNo: '#FT-8288', category: 'Travel', expenseDate: '2023-10-24', totalAmount: 1240.5, status: 'PAID' },
-  { id: 2, vizNo: '#FT-8288', category: 'Software', expenseDate: '2023-10-15', totalAmount: 299, status: 'PENDING' },
-  { id: 3, vizNo: '#FT-8288', category: 'Office Supplies', expenseDate: '2023-10-10', totalAmount: 89.2, status: 'PAID' },
-  { id: 4, vizNo: '#FT-8288', category: 'Transport', expenseDate: '2023-10-02', totalAmount: 32, status: 'PAID' },
-];
+const fallbackRows = [];
+
 
 const icons = {
   Travel: Plane,
@@ -20,13 +16,14 @@ const icons = {
 };
 
 const formatDate = (date) => new Date(date).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
-const formatAmount = (amount) => `$${Number(amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const formatAmount = (amount) => `₹${Number(amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 const Payments = () => {
   const { data: claims = [], isLoading } = useGetClaimsQuery(undefined, {
     refetchOnMountOrArgChange: true,
   });
-  const rows = claims.length ? claims.filter((claim) => ['APPROVED', 'PAID', 'PENDING'].includes(claim.status)).slice(0, 5) : fallbackRows;
+  const rows = claims.filter((claim) => ['APPROVED', 'PAID', 'PENDING'].includes(claim.status));
+
   const [selectedRowKeys, setSelectedRowKeys] = useState([2]);
 
   const columns = useMemo(
@@ -101,7 +98,8 @@ const Payments = () => {
           dataSource={rows}
           columns={columns}
           rowKey="id"
-          loading={isLoading && !fallbackRows.length}
+          loading={isLoading}
+
           tableLayout="fixed"
           className="app-table"
           pagination={{
@@ -109,7 +107,8 @@ const Payments = () => {
             showSizeChanger: false,
             size: 'small',
             className: 'app-pagination px-4 py-3',
-            showTotal: (total) => `Showing 5 of ${total || 128} requests`,
+            showTotal: (total) => `Showing ${rows.length} of ${total} requests`,
+
           }}
         />
       </div>

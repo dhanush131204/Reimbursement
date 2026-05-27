@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Modal, Table } from 'antd';
+import { Modal, Table, message } from 'antd';
 import { Edit3, Eye, Plus, Trash2 } from 'lucide-react';
-import { getAdminUsers, saveAdminUsers } from '../utils/adminUsersStorage';
+import { useGetAdminUsersQuery, useDeleteAdminUserMutation } from '../store/apiSlice';
 
 const AdminUsers = () => {
   const navigate = useNavigate();
-  const [users, setUsers] = useState(() => getAdminUsers());
+  const { data: users = [], isLoading } = useGetAdminUsersQuery();
+  const [deleteAdminUser, { isLoading: isDeleting }] = useDeleteAdminUserMutation();
   const [selectedUser, setSelectedUser] = useState(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
@@ -15,13 +16,14 @@ const AdminUsers = () => {
     setDeleteOpen(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (selectedUser) {
-      setUsers((currentUsers) => {
-        const nextUsers = currentUsers.filter((user) => user.id !== selectedUser.id);
-        saveAdminUsers(nextUsers);
-        return nextUsers;
-      });
+      try {
+        await deleteAdminUser(selectedUser.id).unwrap();
+        message.success('User deleted successfully');
+      } catch (err) {
+        message.error(err?.data?.message || 'Failed to delete user');
+      }
     }
     setDeleteOpen(false);
     setSelectedUser(null);
@@ -29,7 +31,7 @@ const AdminUsers = () => {
 
   const columns = useMemo(
     () => [
-      { title: 'user ID', dataIndex: 'vizNo', key: 'vizNo', render: (value) => <span className="font-semibold text-[#172033]">{value}</span> },
+      { title: 'user ID', dataIndex: 'vizNo', key: 'vizNo', render: (value, record) => <span className="font-semibold text-[#172033]">{value || `VIZ-${String(record.id).padStart(4, '0')}`}</span> },
       { title: 'Employee Name', dataIndex: 'name', key: 'name' },
       { title: 'Contact Number', dataIndex: 'contactNumber', key: 'contactNumber' },
       { title: 'Email Address', dataIndex: 'email', key: 'email', render: (value) => <span className="font-semibold text-[#172033]">{value}</span> },
@@ -72,6 +74,7 @@ const AdminUsers = () => {
           columns={columns}
           dataSource={users}
           rowKey="id"
+          loading={isLoading}
           tableLayout="fixed"
           className="app-table"
           pagination={{
@@ -101,7 +104,7 @@ const AdminUsers = () => {
       >
         {selectedUser && (
           <div className="space-y-3 text-sm text-[#344054]">
-            <p><span className="font-semibold text-[#172033]">User ID:</span> {selectedUser.vizNo}</p>
+            <p><span className="font-semibold text-[#172033]">User ID:</span> {selectedUser.vizNo || `VIZ-${String(selectedUser.id).padStart(4, '0')}`}</p>
             <p><span className="font-semibold text-[#172033]">Employee Name:</span> {selectedUser.name}</p>
             <p><span className="font-semibold text-[#172033]">Contact Number:</span> {selectedUser.contactNumber}</p>
             <p><span className="font-semibold text-[#172033]">Email Address:</span> {selectedUser.email}</p>
@@ -134,8 +137,8 @@ const AdminUsers = () => {
           >
             Cancel
           </button>
-          <button type="button" onClick={confirmDelete} className="h-9 w-28 rounded-md bg-[#c90010] text-sm font-semibold text-white">
-            Confirm
+          <button type="button" onClick={confirmDelete} disabled={isDeleting} className="h-9 w-28 rounded-md bg-[#c90010] text-sm font-semibold text-white disabled:opacity-75">
+            {isDeleting ? 'Deleting...' : 'Confirm'}
           </button>
         </div>
       </Modal>

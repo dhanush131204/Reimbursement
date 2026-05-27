@@ -51,7 +51,7 @@ const Claims = () => {
     { title: 'Date', dataIndex: 'expenseDate', key: 'date', render: (date) => new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) },
     { title: 'Category', dataIndex: 'category', key: 'category', render: (cat) => <span className="text-gray-600">{cat}</span> },
     { title: 'Purpose', dataIndex: 'purpose', key: 'purpose', render: (purpose) => <span className="text-gray-700 max-w-xs truncate block" title={purpose}>{purpose}</span> },
-    { title: 'Amount', dataIndex: 'totalAmount', key: 'amount', render: (amount) => <span className="font-bold text-gray-900">${amount.toFixed(2)}</span> },
+    { title: 'Amount', dataIndex: 'totalAmount', key: 'amount', render: (amount) => <span className="font-bold text-gray-900">₹{amount.toFixed(2)}</span> },
     {
       title: 'Status',
       dataIndex: 'status',
@@ -67,9 +67,9 @@ const Claims = () => {
       render: (_, record) => (
         <div className="flex items-center gap-4">
           {record.receipts && record.receipts.length > 0 ? (
-            <Button 
-              type="link" 
-              icon={<FileText className="w-4 h-4 mr-1 inline" />} 
+            <Button
+              type="link"
+              icon={<FileText className="w-4 h-4 mr-1 inline" />}
               onClick={() => handleViewReceipt(record)}
               className="text-primary-600 hover:text-primary-700 font-medium px-0"
             >
@@ -121,10 +121,10 @@ const Claims = () => {
           </p>
         </div>
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
-          <Input 
-            size="large" 
-            placeholder="Search claims..." 
-            prefix={<Search className="w-4 h-4 text-gray-400 mr-2" />} 
+          <Input
+            size="large"
+            placeholder="Search claims..."
+            prefix={<Search className="w-4 h-4 text-gray-400 mr-2" />}
             className="rounded-xl shadow-sm w-full sm:w-64 border-gray-200"
           />
           <Button size="large" icon={<Filter className="w-4 h-4" />} className="rounded-xl w-full sm:w-auto">
@@ -148,7 +148,7 @@ const Claims = () => {
             dataSource={claims}
             columns={columns}
             rowKey="id"
-            pagination={{ 
+            pagination={{
               pageSize: 10,
               className: 'px-6 py-4 border-t border-gray-100',
               showSizeChanger: false
@@ -163,8 +163,8 @@ const Claims = () => {
             </div>
             <h3 className="text-2xl font-bold text-gray-900 mb-3">No claims found</h3>
             <p className="text-gray-500 max-w-md mx-auto mb-8 text-lg">
-              {userInfo?.role === 'ADMIN' 
-                ? "There are no claims to review at the moment." 
+              {userInfo?.role === 'ADMIN'
+                ? "There are no claims to review at the moment."
                 : "You haven't submitted any claims yet or none match your search."}
             </p>
             {userInfo?.role !== 'ADMIN' && (
@@ -191,16 +191,16 @@ const Claims = () => {
         {selectedReceiptUrl && (
           <div className="flex justify-center bg-gray-50 p-4 rounded-xl border border-gray-100">
             {selectedReceiptUrl.toLowerCase().endsWith('.pdf') ? (
-              <iframe 
-                src={selectedReceiptUrl} 
-                className="w-full h-[600px] rounded-lg shadow-sm" 
-                title="Receipt PDF" 
+              <iframe
+                src={selectedReceiptUrl}
+                className="w-full h-[600px] rounded-lg shadow-sm"
+                title="Receipt PDF"
               />
             ) : (
-              <img 
-                src={selectedReceiptUrl} 
-                alt="Receipt" 
-                className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-sm" 
+              <img
+                src={selectedReceiptUrl}
+                alt="Receipt"
+                className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-sm"
               />
             )}
           </div>
