@@ -4,6 +4,7 @@ import { useGetClaimsQuery, useDeleteClaimMutation } from '../store/apiSlice';
 import { Table, Tag, Input, Skeleton, Button, Modal, message } from 'antd';
 import { Search, Inbox, Plus, Filter, FileText, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { formatCurrency } from '../utils/currency';
 
 const Claims = () => {
   const { userInfo } = useSelector((state) => state.auth);
@@ -51,7 +52,7 @@ const Claims = () => {
     { title: 'Date', dataIndex: 'expenseDate', key: 'date', render: (date) => new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) },
     { title: 'Category', dataIndex: 'category', key: 'category', render: (cat) => <span className="text-gray-600">{cat}</span> },
     { title: 'Purpose', dataIndex: 'purpose', key: 'purpose', render: (purpose) => <span className="text-gray-700 max-w-xs truncate block" title={purpose}>{purpose}</span> },
-    { title: 'Amount', dataIndex: 'totalAmount', key: 'amount', render: (amount) => <span className="font-bold text-gray-900">${amount.toFixed(2)}</span> },
+    { title: 'Amount', dataIndex: 'totalAmount', key: 'amount', render: (amount) => <span className="font-bold text-gray-900">{formatCurrency(amount)}</span> },
     {
       title: 'Status',
       dataIndex: 'status',

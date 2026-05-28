@@ -2,95 +2,119 @@
 
 A world-class, premium Internal Expense & Reimbursement Management SaaS platform. Built with a clean, minimal UI inspired by modern enterprise products (Zoho, Stripe Dashboard, Linear).
 
-## Architecture
+---
 
-* **Frontend:** React, Vite, Tailwind CSS, Ant Design, Redux Toolkit, RTK Query
-* **Backend:** Node.js, Express.js, PostgreSQL, Prisma ORM, JWT Authentication
-* **Data Flow:** Fully decoupled REST APIs. The frontend uses RTK Query exclusively for caching and fetching (no `useEffect` data fetching).
+## 🚀 Quick Start Guide
+
+### 🛠 Prerequisites
+Ensure you have the following installed:
+* **Node.js** (v18 or higher recommended)
+* **npm** or **pnpm** (Package Managers)
+* **PostgreSQL** (Database)
 
 ---
 
-## Prerequisites
-Before you begin, ensure you have installed:
-1. **Node.js** (v16 or higher) npx prisma studio
-2. **PostgreSQL** (See Database Setup instructions below)
+## 🏗 Architecture & Tech Stack
+
+*   **Frontend:** React 19, Vite, Tailwind CSS 4, Ant Design, Redux Toolkit, RTK Query.
+*   **Backend:** Node.js, Express.js, PostgreSQL.
+*   **ORM:** Prisma (Type-safe database access).
+*   **Authentication:** JWT (JSON Web Tokens).
 
 ---
 
-## 0. Database Setup (Choose Option A or B)
+## 📂 Project Structure
 
-### Option A: The Easiest Way (Cloud Database - No Installation)
-You can use a free cloud PostgreSQL provider like **Neon** or **Supabase**. It takes 2 minutes and you don't have to install anything on your PC.
-1. Go to [neon.tech](https://neon.tech/) or [supabase.com](https://supabase.com/) and create a free account.
-2. Create a new project/database.
-3. Once created, they will give you a **Connection String** (e.g., `postgresql://username:password@...`). Copy that string.
-
-### Option B: Local Installation (Windows)
-If you want to install PostgreSQL directly onto your Windows machine:
-1. Go to the [PostgreSQL Windows Download Page](https://www.enterprisedb.com/downloads/postgres-postgresql-downloads).
-2. Download the installer for Windows x86-64 (version 16 or 17) and run it. 
-3. **CRITICAL:** During installation, it will ask you to set a password for the "postgres" superuser. Remember this password.
-4. Open **pgAdmin 4** (installed alongside PostgreSQL) and enter your password.
-5. In the left sidebar, expand **Servers** -> **PostgreSQL**.
-6. Right-click on **Databases** -> **Create** -> **Database...**
-7. Name it exactly: `reimbursement_db` and click Save.
+```text
+Rreimbursement/
+├── client/           # React Frontend (Vite)
+├── server/           # Node.js Backend (Express)
+│   └── prisma/       # Database Schema & Seed
+```
 
 ---
 
-## 1. Backend Setup (Server)
+## ⚡ Command Reference
 
-1. Navigate to the server directory:
-   ```bash
-   cd server
-   ```
+### 💻 Frontend (Client)
+Navigate to `/client` before running these:
+| Command | Description |
+| :--- | :--- |
+| `pnpm install` | Install all dependencies |
+| `pnpm run dev` | Start development server (http://localhost:5173) |
+| `pnpm run build` | Build for production |
+| `pnpm run preview` | Preview production build |
+| `pnpm run lint` | Run ESLint to check for code quality |
 
-2. Install backend dependencies:
-   ```bash
-   npm install
-   ```
+### ⚙️ Backend (Server)
+Navigate to `/server` before running these:
+| Command | Description |
+| :--- | :--- |
+| `pnpm install` | Install all dependencies |
+| `npx prisma generate` |
+| `pnpm run dev` | Start server with Nodemon (auto-reload) |
+| `pnpm start` | Start server in production mode |
+| `pnpm run seed` | Seed the database with initial data |
+| `pnpm add nodemailer` | Install nodemailer |
 
-3. Setup your Environment Variables:
-   Open the `server/.env` file and ensure your `DATABASE_URL` matches your local PostgreSQL credentials. The default is set to:
-   ```env
-   PORT=5000
-   DATABASE_URL="postgresql://postgres:postgres@localhost:5432/reimbursement_db?schema=public"
-   JWT_SECRET="your-super-secret-jwt-key"
-   ```
-   *(Make sure to create a database named `reimbursement_db` in your PostgreSQL instance if it doesn't exist)*
-
-4. Push the Prisma Schema to your database:
-   ```bash
-   npx prisma db push
-   ```
-
-5. Start the backend server:
-   ```bash
-   npm run dev
-   ```
-   *The server will start on http://localhost:5000*
-
----
-
-## 2. Frontend Setup (Client)
-
-1. Open a new terminal window and navigate to the client directory:
-   ```bash
-   cd client
-   ```
-
-2. Install frontend dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Start the Vite development server:
-   ```bash
-   npm run dev
-   ```
-   *The frontend will start on http://localhost:5173*
+### 💎 Database & Prisma
+Run these inside the `/server` directory:
+| Command | Description |
+| :--- | :--- |
+| `npx prisma db push` | Sync schema with database (Development) |
+| `npx prisma generate` | Generate Prisma Client |
+| `npx prisma studio` | Open GUI to view/edit database data |
+| `pnpm run prisma:push` | Alias for `prisma db push` |
+| `pnpm run prisma:generate` | Alias for `prisma generate` |
 
 ---
 
-## Default Roles
-- By default, new users register with the `EMPLOYEE` role.
-- To test the `ADMIN` dashboard, you can register a user, then open your database (using PgAdmin or `npx prisma studio`) and change their role from `EMPLOYEE` to `ADMIN`.
+## 🛠 Setup Instructions
+
+### 1. Database Configuration
+**Option A: Cloud (Recommended)**
+1. Create a free account on [Neon.tech](https://neon.tech/) or [Supabase](https://supabase.com/).
+2. Copy your PostgreSQL connection string.
+
+**Option B: Local (PostgreSQL)**
+1. Install PostgreSQL on your machine.
+2. Create a database named `reimbursement_db`.
+
+### 2. Environment Variables
+In the `server/` directory, create/edit the `.env` file:
+```env
+PORT=5000
+DATABASE_URL="postgresql://postgres:password@localhost:5432/reimbursement_db?schema=public"
+JWT_SECRET="your_secret_key"
+```
+
+### 3. Initialize & Run
+```bash
+# Setup Backend
+cd server
+npm install
+npx prisma db push
+npm run seed  # Optional: Seed initial data
+npm run dev
+
+# Setup Frontend (New Terminal)
+cd client
+npm install
+npm run dev
+```
+
+---
+
+## 💡 Key Features
+- **Role-Based Access:** Employee and Admin portals.
+- **Dynamic Claims:** Real-time claim status tracking.
+- **Email Notifications:** automated emails for status updates (using Resend/Nodemailer).
+- **Responsive Design:** Optimized for all screen sizes.
+
+---
+
+### 👤 Default Admin Access
+To elevate a user to **ADMIN**:
+1. Register a new account via the UI.
+2. Open **Prisma Studio** (`npx prisma studio`).
+3. Change the user's `role` from `EMPLOYEE` to `ADMIN`.

@@ -11,6 +11,7 @@ const { TextArea } = Input;
 
 const NewClaim = () => {
   const [form] = Form.useForm();
+  const categoryValue = Form.useWatch('category', form);
   const navigate = useNavigate();
   const { userInfo } = useSelector((state) => state.auth);
   const [createClaim, { isLoading: isCreating }] = useCreateClaimMutation();
@@ -40,7 +41,7 @@ const NewClaim = () => {
       }
 
       await createClaim({
-        category: values.category,
+        category: values.category === 'Other' ? values.customCategory : values.category,
         expenseDate: values.expenseDate.toISOString(),
         purpose: values.purpose,
         totalAmount: values.totalAmount,
@@ -58,7 +59,7 @@ const NewClaim = () => {
       }).unwrap();
 
       message.success('Request submitted successfully');
-      navigate('/history');
+      navigate('/');
     } catch (err) {
       message.error(err?.data?.message || 'Failed to submit request');
     }
@@ -72,16 +73,16 @@ const NewClaim = () => {
         <FormSection icon={UserRound} title="Employee Information">
           <div className="grid grid-cols-1 gap-x-6 md:grid-cols-3">
             <Form.Item name="vizId" label="Viz No" rules={[{ required: true, message: 'Please enter VIZ number' }]}>
-              <Input placeholder="VIZ-82901" />
+              <Input placeholder="VIZ-82901" disabled />
             </Form.Item>
             <Form.Item name="name" label="Employee Name" rules={[{ required: true, message: 'Please enter employee name' }]}>
-              <Input placeholder="Alex Sterling" />
+              <Input placeholder="Alex Sterling" disabled />
             </Form.Item>
             <Form.Item name="contact" label="Contact Number" rules={[{ required: true, message: 'Please enter contact number' }]}>
-              <Input placeholder="+1 (555) 000-0000" />
+              <Input placeholder="+1 (555) 000-0000" disabled />
             </Form.Item>
             <Form.Item name="email" label="Email Address" rules={[{ required: true, message: 'Please enter email' }, { type: 'email', message: 'Enter a valid email' }]}>
-              <Input placeholder="alex.sterling@fintrack.corp" />
+              <Input placeholder="alex.sterling@fintrack.corp" disabled />
             </Form.Item>
             <Form.Item name="expenseDate" label="Request Date" rules={[{ required: true, message: 'Please select request date' }]}>
               <DatePicker className="w-full" />
@@ -90,7 +91,7 @@ const NewClaim = () => {
         </FormSection>
 
         <FormSection icon={BadgeDollarSign} title="Expense Details">
-          <div className="grid grid-cols-1 gap-x-6 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-x-6 md:grid-cols-3">
             <Form.Item name="category" label="Expense Category" rules={[{ required: true, message: 'Please select category' }]}>
               <Select
                 placeholder="Select Category"
@@ -105,15 +106,18 @@ const NewClaim = () => {
                 ]}
               />
             </Form.Item>
+            {categoryValue === 'Other' && (
+              <Form.Item name="customCategory" label="Specify Category" rules={[{ required: true, message: 'Please enter category' }]}>
+                <Input placeholder="e.g. Internet Bill" />
+              </Form.Item>
+            )}
             <Form.Item name="purpose" label="Purpose of Expense" rules={[{ required: true, message: 'Please enter purpose' }]}>
               <Input placeholder="e.g. Client lunch at Grand Bistro" />
             </Form.Item>
-            <Form.Item name="totalAmount" label="Total Amount ($)" rules={[{ required: true, message: 'Please enter amount' }]}>
-              <InputNumber min={0} precision={2} placeholder="$ 0.00" className="w-full" />
+            <Form.Item name="totalAmount" label="Total Amount (₹)" rules={[{ required: true, message: 'Please enter amount' }]}>
+              <InputNumber min={0} precision={2} placeholder="₹ 0.00" className="w-full" />
             </Form.Item>
-            <Form.Item name="amountSpentOn" label="Amount Spent On">
-              <Input placeholder="Vendor or Merchant name" />
-            </Form.Item>
+
           </div>
           <Form.Item name="notes" label="Additional Notes">
             <TextArea rows={4} placeholder="Provide any extra details or justifications..." />

@@ -28,6 +28,18 @@ export const apiSlice = createApi({
         method: 'POST',
         body: credentials,
       }),
+      invalidatesTags: ['User'],
+    }),
+    getUsers: builder.query({
+      query: () => '/api/auth/users',
+      providesTags: ['User'],
+    }),
+    deleteUser: builder.mutation({
+      query: (id) => ({
+        url: `/api/auth/users/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['User'],
     }),
     updateProfile: builder.mutation({
       query: (profileData) => ({
@@ -49,10 +61,10 @@ export const apiSlice = createApi({
       invalidatesTags: ['Claim'],
     }),
     updateClaimStatus: builder.mutation({
-      query: ({ id, status }) => ({
+      query: ({ id, ...patch }) => ({
         url: `/api/claims/${id}/status`,
         method: 'PATCH',
-        body: { status },
+        body: patch,
       }),
       invalidatesTags: ['Claim'],
     }),
@@ -60,6 +72,21 @@ export const apiSlice = createApi({
       query: (id) => ({
         url: `/api/claims/${id}`,
         method: 'DELETE',
+      }),
+      invalidatesTags: ['Claim'],
+    }),
+    createRazorpayOrder: builder.mutation({
+      query: (claimIds) => ({
+        url: '/api/payments/razorpay/order',
+        method: 'POST',
+        body: { claimIds },
+      }),
+    }),
+    verifyRazorpayPayment: builder.mutation({
+      query: (paymentData) => ({
+        url: '/api/payments/razorpay/verify',
+        method: 'POST',
+        body: paymentData,
       }),
       invalidatesTags: ['Claim'],
     }),
@@ -77,9 +104,13 @@ export const {
   useLoginMutation,
   useRegisterMutation,
   useUpdateProfileMutation,
+  useGetUsersQuery,
+  useDeleteUserMutation,
   useGetClaimsQuery,
   useCreateClaimMutation,
   useUpdateClaimStatusMutation,
   useUploadFileMutation,
   useDeleteClaimMutation,
+  useCreateRazorpayOrderMutation,
+  useVerifyRazorpayPaymentMutation,
 } = apiSlice;

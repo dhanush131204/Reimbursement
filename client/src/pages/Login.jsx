@@ -52,11 +52,11 @@ const Login = () => {
           </h1>
 
           <div className="w-full flex justify-center mb-4">
-            <div className="inline-flex items-center p-1 rounded-lg border border-[#e5e7eb] bg-white shadow-md">
+            <div className="inline-flex items-center p-1 lg:rounded-4xl border border-[#e5e7eb] bg-white shadow-md">
               <button
                 type="button"
                 onClick={() => setRoleView('employee')}
-                className="px-4 py-2 text-xs rounded-md transition-colors"
+                className="px-4 py-2 text-xs md:rounded-4xl transition-colors"
                 style={{
                   backgroundColor: roleView === 'employee' ? '#00aeef' : 'transparent',
                   color: roleView === 'employee' ? '#ffffff' : '#111827',
@@ -67,7 +67,7 @@ const Login = () => {
               <button
                 type="button"
                 onClick={() => setRoleView('admin')}
-                className="px-4 py-2 text-xs rounded-md transition-colors"
+                className="px-4 py-2 text-xs md:rounded-4xl transition-colors"
                 style={{
                   backgroundColor: roleView === 'admin' ? '#00aeef' : 'transparent',
                   color: roleView === 'admin' ? '#ffffff' : '#111827',
@@ -99,7 +99,6 @@ const Login = () => {
                 <Input
                   prefix={<Mail className="w-4 h-4 mr-2" style={{ color: '#9ca3af' }} />}
                   placeholder="name@company.com"
-                  style={{ borderRadius: 5, height: 32, fontSize: 12, backgroundColor: '#fffafd' }}
                 />
               </Form.Item>
 
@@ -112,19 +111,12 @@ const Login = () => {
                 <Input.Password
                   prefix={<Lock className="w-4 h-4 mr-2" style={{ color: '#9ca3af' }} />}
                   placeholder="********"
-                  style={{ borderRadius: 5, height: 32, fontSize: 12, backgroundColor: '#fffafd' }}
                 />
               </Form.Item>
 
               <div className="flex items-center justify-between mb-5">
-                <Form.Item name="remember" valuePropName="checked" noStyle>
-                  <Checkbox>
-                    <span className="text-[10px]" style={{ color: '#6b7280' }}>Remember Me</span>
-                  </Checkbox>
-                </Form.Item>
-                <a href="#" className="text-[10px] font-medium" style={{ color: '#00aeef' }}>
-                  Forgot Password?
-                </a>
+                
+                
               </div>
 
               <Form.Item className="mb-0">
@@ -149,18 +141,7 @@ const Login = () => {
             </Form>
           </div>
 
-          {roleView === 'employee' ? (
-            <p className="text-sm mt-3" style={{ color: '#6b7280' }}>
-              Don&apos;t have an account?{' '}
-              <Link to="/register" className="font-semibold" style={{ color: '#0ea5e9' }}>
-                Register account
-              </Link>
-            </p>
-          ) : (
-            <p className="text-sm mt-3" style={{ color: '#6b7280' }}>
-              Admin accounts can login only. Registration is disabled.
-            </p>
-          )}
+
         </div>
       </div>
     </div>

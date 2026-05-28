@@ -8,6 +8,7 @@ import {
   CreditCard,
   History,
   Settings,
+  UserRound,
   LogOut,
 } from 'lucide-react';
 import { useSelector } from 'react-redux';
@@ -16,10 +17,6 @@ import Frame1Image from '../assets/image/Frame1.png';
 const employeeNavItems = [
   { name: 'Dashboard', path: '/', icon: LayoutDashboard },
   { name: 'New Request', path: '/claims/new', icon: PlusCircle },
-  { name: 'Approved', path: '/approved', icon: CircleCheckBig },
-  { name: 'Pending', path: '/pending', icon: Clock3 },
-  { name: 'Rejected', path: '/rejected', icon: CircleX },
-  { name: 'Expense History', path: '/history', icon: History },
   { name: 'Settings', path: '/settings', icon: Settings },
 ];
 
@@ -27,6 +24,7 @@ const adminNavItems = [
   { name: 'Dashboard', path: '/', icon: LayoutDashboard },
   { name: 'Add User', path: '/users', icon: PlusCircle },
   { name: 'Batch Payments', path: '/payments', icon: CreditCard },
+  { name: 'Profile', path: '/settings', icon: UserRound },
 ];
 
 const AppSidebar = ({ onLogout, onNavigate }) => {
@@ -42,18 +40,19 @@ const AppSidebar = ({ onLogout, onNavigate }) => {
   };
 
   return (
-    <aside className="flex h-full w-full flex-col border-r border-[#d7e4ea] bg-[#f0fbff]">
+    <aside className="flex h-screen min-h-0 w-full flex-col border-r border-[#d7e4ea] bg-[#f0fbff]">
       <div className="flex h-[78px] items-center px-5">
         <img src={Frame1Image} alt="Third Vizion" className="h-12 w-full object-contain object-left" />
       </div>
 
-      <nav className={`flex-1 px-3 ${isAdmin ? 'space-y-2 py-5' : 'space-y-1.5 py-02'}`}>
+      <nav className={`flex-1 min-h-0 px-3 overflow-y-auto ${isAdmin ? 'space-y-2 py-5' : 'space-y-1.5 py-02'}`}>
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive =
             location.pathname === item.path ||
             (item.path === '/history' && location.pathname === '/claims') ||
-            (item.path === '/users' && location.pathname.startsWith('/users'));
+            (item.path === '/users' && location.pathname.startsWith('/users')) ||
+            (item.path === '/settings' && location.pathname === '/settings');
           return (
             <button
               key={item.name}
@@ -71,11 +70,11 @@ const AppSidebar = ({ onLogout, onNavigate }) => {
         })}
       </nav>
 
-      <div className="border-t border-[#d7e4ea] p-3">
+      <div className="mt-auto bg-[#f0fbff] border-t border-[#d7e4ea] p-3">
         <button
           type="button"
           onClick={onLogout}
-          className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-semibold text-[#ef4444] hover:bg-white"
+          className="w-full rounded-md bg-white px-3 py-2.5 text-sm font-semibold text-[#ef4444] hover:bg-[#fffaf9] text-left flex items-center gap-3"
         >
           <LogOut className="h-4 w-4" />
           Logout

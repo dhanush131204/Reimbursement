@@ -1,12 +1,15 @@
 import pkg from '@prisma/client';
 const { PrismaClient } = pkg;
 import bcrypt from 'bcryptjs';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const prisma = new PrismaClient();
 
 async function main() {
-  const adminEmail = 'admin@company.com';
-  const adminPassword = 'admin';
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@company.com';
+  const adminPassword = process.env.ADMIN_PASSWORD || 'admin';
 
   const existingAdmin = await prisma.user.findUnique({
     where: { email: adminEmail },
@@ -24,7 +27,7 @@ async function main() {
         role: 'ADMIN',
       },
     });
-    console.log('✅ Default Admin created: admin@company.com / admin');
+    console.log(`✅ Default Admin created: ${adminEmail} (password loaded from .env)`);
   } else {
     console.log('ℹ️ Default Admin already exists.');
   }

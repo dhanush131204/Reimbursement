@@ -1,8 +1,9 @@
-import { Button, Modal, Table, message } from 'antd';
+import { Button, Input, Modal, Table, message } from 'antd';
 import { useState } from 'react';
-import { Car, Eye, Laptop, Plane, ShoppingBag, Trash2, Utensils, Package } from 'lucide-react';
-import { useDeleteClaimMutation, useUpdateClaimStatusMutation } from '../store/apiSlice';
+import { Car, Eye, Laptop, Plane, ShoppingBag, Utensils, Package } from 'lucide-react';
+import { useUpdateClaimStatusMutation } from '../store/apiSlice';
 import StatusBadge from './StatusBadge';
+import { formatCurrency } from '../utils/currency';
 
 const categoryIcons = {
   Meals: Utensils,
@@ -19,14 +20,12 @@ const formatDate = (date) => {
   return new Date(date).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
 };
 
-const formatAmount = (amount) => `$${Number(amount || 0).toFixed(2)}`;
-
 const ClaimsTable = ({ claims = [], loading, showEmployee = false, pagination = true, title = 'Requests', compactHeader = false, adminActions = false }) => {
   const [selectedReceiptUrl, setSelectedReceiptUrl] = useState('');
   const [selectedClaim, setSelectedClaim] = useState(null);
-  const [claimToDelete, setClaimToDelete] = useState(null);
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState('');
   const [updateClaimStatus, { isLoading: isUpdating }] = useUpdateClaimStatusMutation();
-  const [deleteClaim, { isLoading: isDeleting }] = useDeleteClaimMutation();
 
   const handleView = (record) => {
     const fileUrl = record.receipts?.[0]?.fileUrl || record.receiptUrl;
@@ -41,25 +40,30 @@ const ClaimsTable = ({ claims = [], loading, showEmployee = false, pagination = 
     setSelectedClaim(null);
   };
 
-  const handleStatusChange = async (status) => {
+  const handleStatusChange = async (status, payload = {}) => {
     try {
-      await updateClaimStatus({ id: selectedClaim.id, status }).unwrap();
+      await updateClaimStatus({ id: selectedClaim.id, status, ...payload }).unwrap();
       message.success(`Request ${status.toLowerCase()} successfully`);
+      setRejectionReason('');
+      setIsRejectModalOpen(false);
       handleClose();
     } catch (err) {
       message.error(err?.data?.message || 'Failed to update request');
     }
   };
 
-  const handleDelete = async () => {
-    try {
-      await deleteClaim(claimToDelete.id).unwrap();
-      message.success('Request deleted successfully');
-      setClaimToDelete(null);
-    } catch (err) {
-      message.error(err?.data?.message || 'Failed to delete request');
-    }
+  const openRejectModal = () => {
+    // when opening, prefill any existing rejection reason so admin can edit
+    setRejectionReason(selectedClaim?.rejectionReason || '');
+    setIsRejectModalOpen(true);
   };
+
+  const closeRejectModal = () => {
+    setIsRejectModalOpen(false);
+    setRejectionReason('');
+  };
+
+
 
   const columns = [
     {
@@ -99,21 +103,16 @@ const ClaimsTable = ({ claims = [], loading, showEmployee = false, pagination = 
       },
     },
     { title: 'Date', dataIndex: 'expenseDate', key: 'date', render: formatDate },
-    { title: 'Amount', dataIndex: 'totalAmount', key: 'amount', render: (amount) => <span className="font-semibold text-[#111827]">{formatAmount(amount)}</span> },
+    { title: 'Amount', dataIndex: 'totalAmount', key: 'amount', render: (amount) => <span className="font-semibold text-[#111827]">{formatCurrency(amount)}</span> },
     { title: 'Status', dataIndex: 'status', key: 'status', render: (status) => <StatusBadge status={status} /> },
     {
       title: 'Actions',
       key: 'actions',
       render: (_, record) => (
         adminActions ? (
-          <div className="flex items-center gap-3">
-            <button type="button" aria-label="View" className="text-[#006bd6]" onClick={() => handleView(record)}>
-              <Eye className="h-4 w-4" />
-            </button>
-            <button type="button" aria-label="Delete" className="text-[#4b5563]" onClick={() => setClaimToDelete(record)}>
-              <Trash2 className="h-4 w-4" />
-            </button>
-          </div>
+          <button type="button" aria-label="View" className="text-[#006bd6]" onClick={() => handleView(record)}>
+            <Eye className="h-4 w-4" />
+          </button>
         ) : (
           <Button size="small" icon={<Eye className="h-3.5 w-3.5" />} className="h-8 rounded-md border-[#d7e0e8] px-3 text-xs text-[#172033]" onClick={() => handleView(record)}>
             View
@@ -177,7 +176,7 @@ const ClaimsTable = ({ claims = [], loading, showEmployee = false, pagination = 
         footer={
           showEmployee && selectedClaim?.status === 'PENDING'
             ? [
-                <Button key="reject" danger loading={isUpdating} onClick={() => handleStatusChange('REJECTED')}>
+                <Button key="reject" danger loading={isUpdating} onClick={openRejectModal}>
                   Reject
                 </Button>,
                 <Button key="approve" type="primary" loading={isUpdating} onClick={() => handleStatusChange('APPROVED')}>
@@ -186,36 +185,35 @@ const ClaimsTable = ({ claims = [], loading, showEmployee = false, pagination = 
               ]
             : null
         }
-        width={760}
+        width={860}
       >
         {!selectedReceiptUrl ? (
           <p className="text-sm text-[#64748b]">No bill or invoice was uploaded for this request.</p>
         ) : selectedReceiptUrl.toLowerCase().endsWith('.pdf') ? (
-          <iframe src={selectedReceiptUrl} className="h-[560px] w-full rounded-md border border-[#d7e0e8]" title="Receipt PDF" />
+          <iframe src={selectedReceiptUrl} className="h-[80vh] w-full rounded-md border border-[#d7e0e8]" title="Receipt PDF" />
         ) : (
-          <img src={selectedReceiptUrl} alt="Receipt" className="max-h-[70vh] w-full rounded-md object-contain" />
+          <div className="flex justify-center">
+            <img src={selectedReceiptUrl} alt="Receipt" className="block max-h-[80vh] w-full rounded-md object-contain" />
+          </div>
         )}
       </Modal>
 
       <Modal
-        open={Boolean(claimToDelete)}
-        centered
-        width={360}
-        footer={null}
-        closable={false}
-        onCancel={() => setClaimToDelete(null)}
-        className="delete-modal"
-        rootClassName="delete-modal-root"
+        title="Reject Request"
+        open={isRejectModalOpen}
+        onCancel={closeRejectModal}
+        onOk={() => handleStatusChange('REJECTED', { rejectionReason })}
+        okText="Reject"
+        okButtonProps={{ danger: true, loading: isUpdating, disabled: !rejectionReason.trim() }}
+        width={560}
       >
-        <p className="mb-5 text-center text-base font-medium text-[#172033]">Are you sure want to delete</p>
-        <div className="flex justify-center gap-5">
-          <button type="button" onClick={() => setClaimToDelete(null)} className="h-9 w-28 rounded-md border border-[#d7e0e8] bg-white text-sm text-[#667085]">
-            Cancel
-          </button>
-          <button type="button" onClick={handleDelete} disabled={isDeleting} className="h-9 w-28 rounded-md bg-[#c90010] text-sm font-semibold text-white disabled:opacity-70">
-            {isDeleting ? 'Deleting...' : 'Confirm'}
-          </button>
-        </div>
+        <p className="text-sm text-[#475467] mb-3">Enter the reason for rejecting this request.</p>
+        <Input.TextArea
+          value={rejectionReason}
+          onChange={(e) => setRejectionReason(e.target.value)}
+          rows={4}
+          placeholder="Type rejection reason here"
+        />
       </Modal>
     </>
   );

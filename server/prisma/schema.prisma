@@ -8,15 +8,16 @@ datasource db {
 }
 
 model User {
-  id            Int            @id @default(autoincrement())
-  email         String         @unique
-  password      String
-  name          String
-  contactNumber String?
-  vizNo         String?
-  designation   String?
-  role          Role           @default(EMPLOYEE)
-  claims        Claim[]
+  id               Int            @id @default(autoincrement())
+  email            String         @unique
+  password         String
+  name             String
+  contactNumber    String?
+  vizNo            String?
+  designation      String?
+  profileImageUrl  String?
+  role             Role           @default(EMPLOYEE)
+  claims           Claim[]
   payments      Payment[]
   notifications Notification[]
   auditLogs     AuditLog[]
@@ -40,6 +41,7 @@ model Claim {
   totalAmount   Float
   amountSpentOn String?
   status        ClaimStatus   @default(PENDING)
+  rejectionReason String?
   notes         String?
   receipts      Receipt[]
   payment       Payment?

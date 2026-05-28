@@ -1,9 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button, Form, Input, Select, message } from 'antd';
 import { BriefcaseBusiness, Landmark } from 'lucide-react';
 import FormSection from '../components/FormSection';
 import PageHeader from '../components/PageHeader';
+import { useRegisterMutation } from '../store/apiSlice';
 import { getAdminUsers, upsertAdminUser } from '../utils/adminUsersStorage';
 
 const AdminUserForm = () => {
@@ -16,7 +17,9 @@ const AdminUserForm = () => {
     if (isEdit) {
       const user = getAdminUsers().find((item) => String(item.id) === String(id));
       if (user) {
-        form.setFieldsValue(user);
+        // show only the numeric part in the form input (strip the fixed prefix)
+        const vizNumber = user.vizNo ? String(user.vizNo).replace(/^VIZ-/i, '') : undefined;
+        form.setFieldsValue({ ...user, vizNo: vizNumber });
       } else {
         message.error('User not found');
         navigate('/users');
@@ -24,13 +27,52 @@ const AdminUserForm = () => {
     }
   }, [form, id, isEdit, navigate]);
 
-  const handleSubmit = (values) => {
-    upsertAdminUser({
-      ...values,
-      id: isEdit ? Number(id) : Date.now(),
-    });
-    message.success(isEdit ? 'User updated successfully' : 'User created successfully');
-    navigate('/users');
+  const [registerApi, { isLoading }] = useRegisterMutation();
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (values) => {
+    // ensure vizNo is stored with the fixed prefix
+    const vizWithPrefix = values.vizNo && String(values.vizNo).replace(/^VIZ-/i, '') ? `VIZ-${String(values.vizNo).replace(/^VIZ-/i, '')}` : values.vizNo;
+
+    if (isEdit) {
+      upsertAdminUser({
+        ...values,
+        vizNo: vizWithPrefix,
+        id: Number(id),
+      });
+      message.success('User updated successfully');
+      navigate('/users');
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      const response = await registerApi({
+        name: values.name,
+        email: values.email,
+        password: values.password,
+        contactNumber: values.contactNumber,
+        vizNo: vizWithPrefix,
+        designation: values.designation || null,
+        role: 'EMPLOYEE',
+      }).unwrap();
+
+      upsertAdminUser({
+        id: response.id,
+        name: response.name,
+        email: response.email,
+        contactNumber: response.contactNumber,
+        vizNo: response.vizNo,
+        designation: response.designation,
+        role: response.role,
+      });
+      message.success('User created successfully');
+      navigate('/users');
+    } catch (error) {
+      message.error(error?.data?.message || 'Failed to create user');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -44,8 +86,23 @@ const AdminUserForm = () => {
       <Form form={form} layout="vertical" requiredMark={false} onFinish={handleSubmit} className="space-y-5">
         <FormSection icon={BriefcaseBusiness} title="Employee Information">
           <div className="grid grid-cols-1 gap-x-6 md:grid-cols-3">
-            <Form.Item name="vizNo" label="VIZ No" rules={[{ required: true, message: 'Please enter VIZ number' }]}>
-              <Input placeholder="VIZ-88291" />
+            <Form.Item
+              name="vizNo"
+              label="VIZ No"
+              rules={[
+                { required: true, message: 'Please enter VIZ number' },
+                { pattern: /^\d+$/, message: 'Enter numbers only (e.g. 001)' },
+              ]}
+            >
+              <Input
+                placeholder="001"
+                addonBefore={<span className="font-semibold">VIZ</span>}
+                onChange={(e) => {
+                  const digits = e.target.value.replace(/\D/g, '');
+                  // keep the form field value numeric-only
+                  form.setFieldsValue({ vizNo: digits });
+                }}
+              />
             </Form.Item>
             <Form.Item name="name" label="Employee Name" rules={[{ required: true, message: 'Please enter employee name' }]}>
               <Input placeholder="Alex Sterling" />
@@ -58,16 +115,7 @@ const AdminUserForm = () => {
             <Form.Item name="email" label="Email Address" rules={[{ required: true, message: 'Please enter email' }, { type: 'email', message: 'Enter a valid email' }]}>
               <Input placeholder="alex.sterling@fintrack.corp" />
             </Form.Item>
-            <Form.Item name="role" label="Role selection" rules={[{ required: true, message: 'Please select role' }]}>
-              <Select
-                placeholder="Select Category"
-                options={[
-                  { value: 'Full Stack Engineer', label: 'Full Stack Engineer' },
-                  { value: 'Designer', label: 'Designer' },
-                  { value: 'Admin', label: 'Admin' },
-                ]}
-              />
-            </Form.Item>
+            
             <Form.Item name="contactNumber" label="Contact Number" rules={[{ required: true, message: 'Please enter contact number' }]}>
               <Input placeholder="+1 (555) 000-0000" />
             </Form.Item>
@@ -94,7 +142,7 @@ const AdminUserForm = () => {
         </FormSection>
 
         <div className="flex justify-end border-t border-[#d7e0e8] pt-4">
-          <Button type="primary" htmlType="submit" className="h-9 rounded-md px-8 text-xs">
+          <Button type="primary" htmlType="submit" loading={submitting || isLoading} className="h-9 rounded-md px-8 text-xs">
             {isEdit ? 'Update user' : 'Create user'}
           </Button>
         </div>
