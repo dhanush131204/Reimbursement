@@ -30,7 +30,7 @@ const MainLayout = () => {
       )}
 
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-[220px] shrink-0 transform transition-transform duration-200 lg:relative lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-[270px] shrink-0 transform transition-transform duration-200 lg:relative lg:translate-x-0 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -39,8 +39,8 @@ const MainLayout = () => {
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <TopBar user={userInfo} onMenu={() => setSidebarOpen(true)} onProfile={() => navigate('/settings?edit=profile')} />
-        <main className={`flex-1 overflow-y-auto overflow-x-hidden bg-white px-6 ${isAdmin ? 'py-8' : 'py-6'}`}>
-          <div className={`mx-auto w-full ${isAdmin ? 'max-w-[1120px]' : 'max-w-[1240px]'}`}>
+        <main className={`flex-1 overflow-y-auto overflow-x-hidden bg-[#f9fafb] px-6 md:px-10 lg:px-12 xl:px-16 ${isAdmin ? 'py-10' : 'py-8'}`}>
+          <div className={`mx-auto w-full ${isAdmin ? 'max-w-[1260px]' : 'max-w-[1380px]'}`}>
             <Outlet />
           </div>
         </main>

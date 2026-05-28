@@ -41,11 +41,11 @@ const AppSidebar = ({ onLogout, onNavigate }) => {
 
   return (
     <aside className="flex h-full w-full flex-col border-r border-[#d7e4ea] bg-[#f0fbff]">
-      <div className="flex h-[78px] items-center px-5">
-        <img src={Frame1Image} alt="Third Vizion" className="h-12 w-full object-contain object-left" />
+      <div className="flex h-[80px] items-center px-7">
+        <img src={Frame1Image} alt="Third Vizion" className="h-10 w-auto object-contain" />
       </div>
 
-      <nav className={`flex-1 px-3 ${isAdmin ? 'space-y-2 py-5' : 'space-y-1.5 py-02'}`}>
+      <nav className={`flex-1 px-5 ${isAdmin ? 'space-y-1.5 py-6' : 'space-y-1 py-4'}`}>
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive =
@@ -58,7 +58,7 @@ const AppSidebar = ({ onLogout, onNavigate }) => {
               key={item.name}
               type="button"
               onClick={() => goTo(item.path)}
-              className={`relative flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left transition-colors ${isAdmin ? 'text-xs' : 'text-sm'} ${
+              className={`relative flex w-full items-center gap-3.5 rounded-md px-4 py-2.5 text-left transition-colors ${isAdmin ? 'text-xs' : 'text-sm'} ${
                 isActive ? 'bg-[#d8f5ff] font-semibold text-[#172033]' : 'text-[#7a8793] hover:bg-white hover:text-[#172033]'
               }`}
             >
@@ -70,11 +70,11 @@ const AppSidebar = ({ onLogout, onNavigate }) => {
         })}
       </nav>
 
-      <div className="border-t border-[#d7e4ea] p-3">
+      <div className="border-t border-[#d7e4ea] p-5">
         <button
           type="button"
           onClick={onLogout}
-          className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-semibold text-[#ef4444] hover:bg-white"
+          className="flex w-full items-center gap-3.5 rounded-md px-4 py-2.5 text-sm font-semibold text-[#ef4444] hover:bg-white transition-colors"
         >
           <LogOut className="h-4 w-4" />
           Logout

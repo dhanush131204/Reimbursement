@@ -83,7 +83,7 @@ const Dashboard = () => {
           }
         />
 
-        <div className="grid auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid auto-rows-fr grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard
             icon={FileText}
             label="Total Requests"
@@ -144,7 +144,7 @@ const Dashboard = () => {
         subtitle="Track your reimbursement lifecycle and spending."
       />
 
-      <div className="grid auto-rows-fr grid-cols-1 gap-4 md:grid-cols-6">
+      <div className="grid auto-rows-fr grid-cols-1 gap-6 md:grid-cols-6">
         <StatCard icon={FileText} label="Total Pending" value={String(pendingRequests).padStart(2, '0')} className="md:col-span-3" dense />
         <StatCard icon={Banknote} label="Total Amount To Pay" value={formatCurrency(amountToPay)} iconClassName="bg-[#ffefd6] text-[#f59e0b]" className="md:col-span-3" dense />
         <StatCard icon={CircleX} label="Rejected Requests" value={String(rejectedRequests).padStart(2, '0')} iconClassName="bg-[#ffe1e3] text-[#e02f3e]" className="md:col-span-2" dense />
