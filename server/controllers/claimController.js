@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { sendMail, approvalEmailHtml, rejectionEmailHtml } from '../utils/sendMail.js';
 const prisma = new PrismaClient();
 
 // @desc    Get all claims (Admin) or User's claims (Employee)
@@ -97,17 +98,79 @@ export const createClaim = async (req, res) => {
 // @route   PATCH /api/claims/:id/status
 // @access  Private (Admin)
 export const updateClaimStatus = async (req, res) => {
-  const { status } = req.body;
+  const { status, rejectionReason } = req.body;
   const { id } = req.params;
+  const validStatuses = ['APPROVED', 'REJECTED'];
+
+  if (!validStatuses.includes(status)) {
+    return res.status(400).json({ message: 'Status must be APPROVED or REJECTED' });
+  }
 
   try {
+    const existingClaim = await prisma.claim.findUnique({
+      where: { id: Number(id) },
+      include: { user: true },
+    });
+
+    if (!existingClaim) {
+      return res.status(404).json({ message: 'Claim not found' });
+    }
+
+    const updateData = { status };
+    if (status === 'REJECTED') {
+      updateData.rejectionReason = rejectionReason || null;
+    } else {
+      updateData.rejectionReason = null;
+    }
+
     const updatedClaim = await prisma.claim.update({
       where: { id: Number(id) },
-      data: { status },
+      data: updateData,
     });
-    res.json(updatedClaim);
+
+    const reimbursementTitle = updatedClaim.title ?? updatedClaim.purpose ?? 'Reimbursement request';
+    const userEmail = existingClaim.user.email;
+    const employeeName = existingClaim.user.name;
+
+    const emailSubject = status === 'APPROVED'
+      ? 'Your reimbursement has been approved'
+      : 'Your reimbursement has been rejected';
+
+    const emailHtml = status === 'APPROVED'
+      ? approvalEmailHtml({
+          employeeName,
+          reimbursementTitle,
+          claimStatus: updatedClaim.status,
+        })
+      : rejectionEmailHtml({
+          employeeName,
+          reimbursementTitle,
+          claimStatus: updatedClaim.status,
+          rejectionNote: updatedClaim.rejectionReason,
+        });
+
+    try {
+      await sendMail({
+        to: userEmail,
+        subject: emailSubject,
+        html: emailHtml,
+      });
+    } catch (emailError) {
+      console.error('Reimbursement notification email failed:', emailError);
+      return res.status(500).json({
+        message: 'Claim status updated, but notification email failed to send',
+        details: emailError.message,
+        claim: updatedClaim,
+      });
+    }
+
+    res.json({
+      message: 'Claim status updated and notification email sent',
+      claim: updatedClaim,
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Server Error updating claim' });
+    console.error('Update claim status error:', error);
+    res.status(500).json({ message: error?.message || 'Server Error updating claim' });
   }
 };
 

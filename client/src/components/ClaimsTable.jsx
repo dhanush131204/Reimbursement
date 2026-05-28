@@ -1,4 +1,4 @@
-import { Button, Modal, Table, message } from 'antd';
+import { Button, Input, Modal, Table, message } from 'antd';
 import { useState } from 'react';
 import { Car, Eye, Laptop, Plane, ShoppingBag, Utensils, Package } from 'lucide-react';
 import { useUpdateClaimStatusMutation } from '../store/apiSlice';
@@ -23,6 +23,8 @@ const formatDate = (date) => {
 const ClaimsTable = ({ claims = [], loading, showEmployee = false, pagination = true, title = 'Requests', compactHeader = false, adminActions = false }) => {
   const [selectedReceiptUrl, setSelectedReceiptUrl] = useState('');
   const [selectedClaim, setSelectedClaim] = useState(null);
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState('');
   const [updateClaimStatus, { isLoading: isUpdating }] = useUpdateClaimStatusMutation();
 
   const handleView = (record) => {
@@ -38,14 +40,27 @@ const ClaimsTable = ({ claims = [], loading, showEmployee = false, pagination = 
     setSelectedClaim(null);
   };
 
-  const handleStatusChange = async (status) => {
+  const handleStatusChange = async (status, payload = {}) => {
     try {
-      await updateClaimStatus({ id: selectedClaim.id, status }).unwrap();
+      await updateClaimStatus({ id: selectedClaim.id, status, ...payload }).unwrap();
       message.success(`Request ${status.toLowerCase()} successfully`);
+      setRejectionReason('');
+      setIsRejectModalOpen(false);
       handleClose();
     } catch (err) {
       message.error(err?.data?.message || 'Failed to update request');
     }
+  };
+
+  const openRejectModal = () => {
+    // when opening, prefill any existing rejection reason so admin can edit
+    setRejectionReason(selectedClaim?.rejectionReason || '');
+    setIsRejectModalOpen(true);
+  };
+
+  const closeRejectModal = () => {
+    setIsRejectModalOpen(false);
+    setRejectionReason('');
   };
 
 
@@ -161,7 +176,7 @@ const ClaimsTable = ({ claims = [], loading, showEmployee = false, pagination = 
         footer={
           showEmployee && selectedClaim?.status === 'PENDING'
             ? [
-                <Button key="reject" danger loading={isUpdating} onClick={() => handleStatusChange('REJECTED')}>
+                <Button key="reject" danger loading={isUpdating} onClick={openRejectModal}>
                   Reject
                 </Button>,
                 <Button key="approve" type="primary" loading={isUpdating} onClick={() => handleStatusChange('APPROVED')}>
@@ -170,15 +185,35 @@ const ClaimsTable = ({ claims = [], loading, showEmployee = false, pagination = 
               ]
             : null
         }
-        width={760}
+        width={860}
       >
         {!selectedReceiptUrl ? (
           <p className="text-sm text-[#64748b]">No bill or invoice was uploaded for this request.</p>
         ) : selectedReceiptUrl.toLowerCase().endsWith('.pdf') ? (
-          <iframe src={selectedReceiptUrl} className="h-[560px] w-full rounded-md border border-[#d7e0e8]" title="Receipt PDF" />
+          <iframe src={selectedReceiptUrl} className="h-[80vh] w-full rounded-md border border-[#d7e0e8]" title="Receipt PDF" />
         ) : (
-          <img src={selectedReceiptUrl} alt="Receipt" className="max-h-[70vh] w-full rounded-md object-contain" />
+          <div className="flex justify-center">
+            <img src={selectedReceiptUrl} alt="Receipt" className="block max-h-[80vh] w-full rounded-md object-contain" />
+          </div>
         )}
+      </Modal>
+
+      <Modal
+        title="Reject Request"
+        open={isRejectModalOpen}
+        onCancel={closeRejectModal}
+        onOk={() => handleStatusChange('REJECTED', { rejectionReason })}
+        okText="Reject"
+        okButtonProps={{ danger: true, loading: isUpdating, disabled: !rejectionReason.trim() }}
+        width={560}
+      >
+        <p className="text-sm text-[#475467] mb-3">Enter the reason for rejecting this request.</p>
+        <Input.TextArea
+          value={rejectionReason}
+          onChange={(e) => setRejectionReason(e.target.value)}
+          rows={4}
+          placeholder="Type rejection reason here"
+        />
       </Modal>
     </>
   );

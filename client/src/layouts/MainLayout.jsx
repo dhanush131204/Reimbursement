@@ -19,7 +19,7 @@ const MainLayout = () => {
   const isAdmin = userInfo?.role === 'ADMIN';
 
   return (
-    <div className="flex h-screen overflow-hidden bg-white text-[#111827]">
+    <div className="flex min-h-screen overflow-hidden bg-white text-[#111827]">
       {sidebarOpen && (
         <button
           type="button"

@@ -28,6 +28,18 @@ export const apiSlice = createApi({
         method: 'POST',
         body: credentials,
       }),
+      invalidatesTags: ['User'],
+    }),
+    getUsers: builder.query({
+      query: () => '/api/auth/users',
+      providesTags: ['User'],
+    }),
+    deleteUser: builder.mutation({
+      query: (id) => ({
+        url: `/api/auth/users/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['User'],
     }),
     updateProfile: builder.mutation({
       query: (profileData) => ({
@@ -49,10 +61,10 @@ export const apiSlice = createApi({
       invalidatesTags: ['Claim'],
     }),
     updateClaimStatus: builder.mutation({
-      query: ({ id, status }) => ({
+      query: ({ id, ...patch }) => ({
         url: `/api/claims/${id}/status`,
         method: 'PATCH',
-        body: { status },
+        body: patch,
       }),
       invalidatesTags: ['Claim'],
     }),
@@ -92,6 +104,8 @@ export const {
   useLoginMutation,
   useRegisterMutation,
   useUpdateProfileMutation,
+  useGetUsersQuery,
+  useDeleteUserMutation,
   useGetClaimsQuery,
   useCreateClaimMutation,
   useUpdateClaimStatusMutation,

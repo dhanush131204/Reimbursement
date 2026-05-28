@@ -1,12 +1,14 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Modal, Table } from 'antd';
+import { Modal, Table, message } from 'antd';
 import { Edit3, Eye, Plus, Trash2 } from 'lucide-react';
-import { getAdminUsers, saveAdminUsers } from '../utils/adminUsersStorage';
+import { useGetUsersQuery, useDeleteUserMutation } from '../store/apiSlice';
 
 const AdminUsers = () => {
   const navigate = useNavigate();
-  const [users, setUsers] = useState(() => getAdminUsers());
+  const { data: users = [], isLoading } = useGetUsersQuery();
+  const [deleteUser] = useDeleteUserMutation();
+
   const [selectedUser, setSelectedUser] = useState(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
@@ -15,24 +17,26 @@ const AdminUsers = () => {
     setDeleteOpen(true);
   };
 
-  const confirmDelete = () => {
-    if (selectedUser) {
-      setUsers((currentUsers) => {
-        const nextUsers = currentUsers.filter((user) => user.id !== selectedUser.id);
-        saveAdminUsers(nextUsers);
-        return nextUsers;
-      });
+  const confirmDelete = async () => {
+    if (!selectedUser) return;
+    try {
+      await deleteUser(selectedUser.id).unwrap();
+      message.success(`User "${selectedUser.name}" deleted successfully`);
+    } catch (err) {
+      message.error(err?.data?.message || 'Failed to delete user');
+    } finally {
+      setDeleteOpen(false);
+      setSelectedUser(null);
     }
-    setDeleteOpen(false);
-    setSelectedUser(null);
   };
 
   const columns = useMemo(
     () => [
-      { title: 'user ID', dataIndex: 'vizNo', key: 'vizNo', render: (value) => <span className="font-semibold text-[#172033]">{value}</span> },
+      { title: 'User ID', dataIndex: 'vizNo', key: 'vizNo', render: (value) => <span className="font-semibold text-[#172033]">{value || '—'}</span> },
       { title: 'Employee Name', dataIndex: 'name', key: 'name' },
-      { title: 'Contact Number', dataIndex: 'contactNumber', key: 'contactNumber' },
+      { title: 'Contact Number', dataIndex: 'contactNumber', key: 'contactNumber', render: (v) => v || '—' },
       { title: 'Email Address', dataIndex: 'email', key: 'email', render: (value) => <span className="font-semibold text-[#172033]">{value}</span> },
+      { title: 'Role', dataIndex: 'role', key: 'role', render: (v) => <span className={`text-xs font-semibold ${v === 'ADMIN' ? 'text-purple-600' : 'text-blue-600'}`}>{v}</span> },
       {
         title: 'Actions',
         key: 'actions',
@@ -72,6 +76,7 @@ const AdminUsers = () => {
           columns={columns}
           dataSource={users}
           rowKey="id"
+          loading={isLoading}
           tableLayout="fixed"
           className="app-table"
           pagination={{
@@ -79,7 +84,8 @@ const AdminUsers = () => {
             showSizeChanger: false,
             size: 'small',
             className: 'app-pagination px-4 py-3',
-            showTotal: (total, range) => total > 0 ? `Showing ${range[0]} of ${total} requests` : 'Showing 0 of 0 requests',
+            showTotal: (total, range) =>
+              total > 0 ? `Showing ${range[0]} of ${total} users` : 'Showing 0 of 0 users',
           }}
           locale={{
             emptyText: (
@@ -92,6 +98,7 @@ const AdminUsers = () => {
         />
       </div>
 
+      {/* View Modal */}
       <Modal
         open={Boolean(selectedUser) && !deleteOpen}
         title="User Details"
@@ -101,14 +108,16 @@ const AdminUsers = () => {
       >
         {selectedUser && (
           <div className="space-y-3 text-sm text-[#344054]">
-            <p><span className="font-semibold text-[#172033]">User ID:</span> {selectedUser.vizNo}</p>
+            <p><span className="font-semibold text-[#172033]">User ID:</span> {selectedUser.vizNo || '—'}</p>
             <p><span className="font-semibold text-[#172033]">Employee Name:</span> {selectedUser.name}</p>
-            <p><span className="font-semibold text-[#172033]">Contact Number:</span> {selectedUser.contactNumber}</p>
+            <p><span className="font-semibold text-[#172033]">Contact Number:</span> {selectedUser.contactNumber || '—'}</p>
             <p><span className="font-semibold text-[#172033]">Email Address:</span> {selectedUser.email}</p>
+            <p><span className="font-semibold text-[#172033]">Role:</span> {selectedUser.role}</p>
           </div>
         )}
       </Modal>
 
+      {/* Delete Confirmation Modal */}
       <Modal
         open={deleteOpen}
         centered
@@ -122,7 +131,9 @@ const AdminUsers = () => {
         className="delete-modal"
         rootClassName="delete-modal-root"
       >
-        <p className="mb-5 text-center text-base font-medium text-[#172033]">Are you sure want to delete</p>
+        <p className="mb-1 text-center text-base font-medium text-[#172033]">Are you sure you want to delete</p>
+        <p className="mb-5 text-center text-sm font-semibold text-[#ff2f3f]">{selectedUser?.name}?</p>
+        <p className="mb-5 text-center text-xs text-[#64748b]">This will permanently remove the user and all their claims, receipts, and payments from the database.</p>
         <div className="flex justify-center gap-5">
           <button
             type="button"

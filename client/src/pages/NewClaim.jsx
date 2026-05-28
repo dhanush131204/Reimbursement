@@ -91,7 +91,7 @@ const NewClaim = () => {
         </FormSection>
 
         <FormSection icon={BadgeDollarSign} title="Expense Details">
-          <div className="grid grid-cols-1 gap-x-6 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-x-6 md:grid-cols-3">
             <Form.Item name="category" label="Expense Category" rules={[{ required: true, message: 'Please select category' }]}>
               <Select
                 placeholder="Select Category"
@@ -117,7 +117,7 @@ const NewClaim = () => {
             <Form.Item name="totalAmount" label="Total Amount (₹)" rules={[{ required: true, message: 'Please enter amount' }]}>
               <InputNumber min={0} precision={2} placeholder="₹ 0.00" className="w-full" />
             </Form.Item>
-           
+
           </div>
           <Form.Item name="notes" label="Additional Notes">
             <TextArea rows={4} placeholder="Provide any extra details or justifications..." />

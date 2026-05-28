@@ -33,6 +33,7 @@ const Dashboard = () => {
 
   const pendingRequests = claims.filter((claim) => claim.status === 'PENDING').length;
   const rejectedRequests = claims.filter((claim) => claim.status === 'REJECTED').length;
+  const approvedRequests = claims.filter((claim) => claim.status === 'APPROVED').length;
   const amountToPay = claims
     .filter((claim) => claim.status === 'APPROVED')
     .reduce((sum, claim) => sum + Number(claim.totalAmount || 0), 0);
@@ -145,10 +146,10 @@ const Dashboard = () => {
       />
 
       <div className="grid auto-rows-fr grid-cols-1 gap-4 md:grid-cols-6">
-        <StatCard icon={FileText} label="Total Pending" value={String(pendingRequests).padStart(2, '0')} className="md:col-span-3" dense />
-        <StatCard icon={Banknote} label="Total Amount To Pay" value={formatCurrency(amountToPay)} iconClassName="bg-[#ffefd6] text-[#f59e0b]" className="md:col-span-3" dense />
-        <StatCard icon={CircleX} label="Rejected Requests" value={String(rejectedRequests).padStart(2, '0')} iconClassName="bg-[#ffe1e3] text-[#e02f3e]" className="md:col-span-2" dense />
-        <StatCard icon={WalletCards} label="Total Payments Count" value={String(paidClaims.length).padStart(2, '0')} iconClassName="bg-[#dbeafe] text-[#1264d8]" className="md:col-span-2" dense />
+        <StatCard icon={FileText} label="Total Pending" value={String(pendingRequests).padStart(2, '0')} className="md:col-span-2" dense onClick={() => handleStatCardClick('PENDING')} />
+        <StatCard icon={FileText} label="Approved Requests" value={String(approvedRequests).padStart(2, '0')} className="md:col-span-2" dense onClick={() => handleStatCardClick('APPROVED')} />
+        <StatCard icon={Banknote} label="Total Amount To Pay" value={formatCurrency(amountToPay)} iconClassName="bg-[#ffefd6] text-[#f59e0b]" className="md:col-span-2" dense />
+        <StatCard icon={CircleX} label="Rejected Requests" value={String(rejectedRequests).padStart(2, '0')} iconClassName="bg-[#ffe1e3] text-[#e02f3e]" className="md:col-span-2" dense onClick={() => handleStatCardClick('REJECTED')} />
         <StatCard icon={WalletCards} label="Total Amount Paid" value={formatCurrency(totalPaid)} iconClassName="bg-[#006bd6] text-white" className="md:col-span-2" dense />
       </div>
 

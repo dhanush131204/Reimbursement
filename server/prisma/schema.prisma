@@ -41,6 +41,7 @@ model Claim {
   totalAmount   Float
   amountSpentOn String?
   status        ClaimStatus   @default(PENDING)
+  rejectionReason String?
   notes         String?
   receipts      Receipt[]
   payment       Payment?

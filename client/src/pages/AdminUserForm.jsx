@@ -17,7 +17,9 @@ const AdminUserForm = () => {
     if (isEdit) {
       const user = getAdminUsers().find((item) => String(item.id) === String(id));
       if (user) {
-        form.setFieldsValue(user);
+        // show only the numeric part in the form input (strip the fixed prefix)
+        const vizNumber = user.vizNo ? String(user.vizNo).replace(/^VIZ-/i, '') : undefined;
+        form.setFieldsValue({ ...user, vizNo: vizNumber });
       } else {
         message.error('User not found');
         navigate('/users');
@@ -29,9 +31,13 @@ const AdminUserForm = () => {
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (values) => {
+    // ensure vizNo is stored with the fixed prefix
+    const vizWithPrefix = values.vizNo && String(values.vizNo).replace(/^VIZ-/i, '') ? `VIZ-${String(values.vizNo).replace(/^VIZ-/i, '')}` : values.vizNo;
+
     if (isEdit) {
       upsertAdminUser({
         ...values,
+        vizNo: vizWithPrefix,
         id: Number(id),
       });
       message.success('User updated successfully');
@@ -46,7 +52,7 @@ const AdminUserForm = () => {
         email: values.email,
         password: values.password,
         contactNumber: values.contactNumber,
-        vizNo: values.vizNo,
+        vizNo: vizWithPrefix,
         designation: values.designation || null,
         role: 'EMPLOYEE',
       }).unwrap();
@@ -80,8 +86,23 @@ const AdminUserForm = () => {
       <Form form={form} layout="vertical" requiredMark={false} onFinish={handleSubmit} className="space-y-5">
         <FormSection icon={BriefcaseBusiness} title="Employee Information">
           <div className="grid grid-cols-1 gap-x-6 md:grid-cols-3">
-            <Form.Item name="vizNo" label="VIZ No" rules={[{ required: true, message: 'Please enter VIZ number' }]}>
-              <Input placeholder="VIZ-88291" />
+            <Form.Item
+              name="vizNo"
+              label="VIZ No"
+              rules={[
+                { required: true, message: 'Please enter VIZ number' },
+                { pattern: /^\d+$/, message: 'Enter numbers only (e.g. 001)' },
+              ]}
+            >
+              <Input
+                placeholder="001"
+                addonBefore={<span className="font-semibold">VIZ</span>}
+                onChange={(e) => {
+                  const digits = e.target.value.replace(/\D/g, '');
+                  // keep the form field value numeric-only
+                  form.setFieldsValue({ vizNo: digits });
+                }}
+              />
             </Form.Item>
             <Form.Item name="name" label="Employee Name" rules={[{ required: true, message: 'Please enter employee name' }]}>
               <Input placeholder="Alex Sterling" />

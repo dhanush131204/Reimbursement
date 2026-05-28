@@ -16,7 +16,7 @@ import Frame1Image from '../assets/image/Frame1.png';
 
 const employeeNavItems = [
   { name: 'Dashboard', path: '/', icon: LayoutDashboard },
-  { name: 'New Reimbursement', path: '/claims/new', icon: PlusCircle },
+  { name: 'New Request', path: '/claims/new', icon: PlusCircle },
   { name: 'Settings', path: '/settings', icon: Settings },
 ];
 
@@ -40,12 +40,12 @@ const AppSidebar = ({ onLogout, onNavigate }) => {
   };
 
   return (
-    <aside className="flex h-full w-full flex-col border-r border-[#d7e4ea] bg-[#f0fbff]">
+    <aside className="flex h-screen min-h-0 w-full flex-col border-r border-[#d7e4ea] bg-[#f0fbff]">
       <div className="flex h-[78px] items-center px-5">
         <img src={Frame1Image} alt="Third Vizion" className="h-12 w-full object-contain object-left" />
       </div>
 
-      <nav className={`flex-1 px-3 ${isAdmin ? 'space-y-2 py-5' : 'space-y-1.5 py-02'}`}>
+      <nav className={`flex-1 min-h-0 px-3 overflow-y-auto ${isAdmin ? 'space-y-2 py-5' : 'space-y-1.5 py-02'}`}>
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive =
@@ -70,11 +70,11 @@ const AppSidebar = ({ onLogout, onNavigate }) => {
         })}
       </nav>
 
-      <div className="border-t border-[#d7e4ea] p-3">
+      <div className="mt-auto bg-[#f0fbff] border-t border-[#d7e4ea] p-3">
         <button
           type="button"
           onClick={onLogout}
-          className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-semibold text-[#ef4444] hover:bg-white"
+          className="w-full rounded-md bg-white px-3 py-2.5 text-sm font-semibold text-[#ef4444] hover:bg-[#fffaf9] text-left flex items-center gap-3"
         >
           <LogOut className="h-4 w-4" />
           Logout

@@ -21,7 +21,7 @@ const defaultFilters = {
 
 const dateRangeOptions = ['Last 7 Days', 'Last 30 Days', 'Last 90 Days', 'This Month', 'This Year'];
 const categoryOptions = ['All Categories', 'Meals', 'Travel', 'Software', 'Office Supplies', 'Transport', 'Equipment', 'Other'];
-const statusOptions = ['All Statuses', 'APPROVED', 'PENDING', 'PAID'];
+const statusOptions = ['Selected status', 'APPROVED', 'PENDING', 'PAID'];
 
 const formatDate = (date) => new Date(date).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
 
