@@ -149,18 +149,7 @@ const Login = () => {
             </Form>
           </div>
 
-          {roleView === 'employee' ? (
-            <p className="text-sm mt-3" style={{ color: '#6b7280' }}>
-              Don&apos;t have an account?{' '}
-              <Link to="/register" className="font-semibold" style={{ color: '#0ea5e9' }}>
-                Register account
-              </Link>
-            </p>
-          ) : (
-            <p className="text-sm mt-3" style={{ color: '#6b7280' }}>
-              Admin accounts can login only. Registration is disabled.
-            </p>
-          )}
+
         </div>
       </div>
     </div>

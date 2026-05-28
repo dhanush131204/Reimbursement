@@ -38,7 +38,7 @@ const MainLayout = () => {
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <TopBar user={userInfo} onMenu={() => setSidebarOpen(true)} />
+        <TopBar user={userInfo} onMenu={() => setSidebarOpen(true)} onProfile={() => navigate('/settings?edit=profile')} />
         <main className={`flex-1 overflow-y-auto overflow-x-hidden bg-white px-6 ${isAdmin ? 'py-8' : 'py-6'}`}>
           <div className={`mx-auto w-full ${isAdmin ? 'max-w-[1120px]' : 'max-w-[1240px]'}`}>
             <Outlet />

@@ -21,6 +21,7 @@ export const authUser = async (req, res) => {
         contactNumber: user.contactNumber,
         vizNo: user.vizNo,
         designation: user.designation,
+        profileImageUrl: user.profileImageUrl || null,
         role: user.role,
         token: generateToken(user.id, user.role),
       });
@@ -36,7 +37,7 @@ export const authUser = async (req, res) => {
 // @route   POST /api/auth/register
 // @access  Public
 export const registerUser = async (req, res) => {
-  const { name, email, password, contactNumber, vizNo, designation } = req.body;
+  const { name, email, password, contactNumber, vizNo, designation, role } = req.body;
 
   try {
     const userExists = await prisma.user.findUnique({ where: { email } });
@@ -56,6 +57,7 @@ export const registerUser = async (req, res) => {
         contactNumber: contactNumber || null,
         vizNo: vizNo || null,
         designation: designation || null,
+        role: role || 'EMPLOYEE',
       },
     });
 
@@ -67,6 +69,7 @@ export const registerUser = async (req, res) => {
         contactNumber: user.contactNumber,
         vizNo: user.vizNo,
         designation: user.designation,
+        profileImageUrl: user.profileImageUrl || null,
         role: user.role,
         token: generateToken(user.id, user.role),
       });
@@ -82,28 +85,42 @@ export const registerUser = async (req, res) => {
 // @route   PUT /api/auth/profile
 // @access  Private
 export const updateUserProfile = async (req, res) => {
-  const { name, email, contactNumber, vizNo, designation } = req.body;
+  const { name, email, contactNumber, vizNo, designation, profileImageUrl } = req.body;
 
   try {
-    if (!name || !email) {
-      return res.status(400).json({ message: 'Name and email are required' });
+    // Fetch the current user from db so we can fall back to existing values
+    const currentUser = await prisma.user.findUnique({ where: { id: req.user.id } });
+
+    if (!currentUser) {
+      return res.status(404).json({ message: 'User not found' });
     }
 
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    const updatedName = name || currentUser.name;
+    const updatedEmail = email || currentUser.email;
 
-    if (existingUser && existingUser.id !== req.user.id) {
-      return res.status(400).json({ message: 'Email is already in use' });
+    // Check if email is being changed and already in use by another user
+    if (updatedEmail !== currentUser.email) {
+      const existingUser = await prisma.user.findUnique({ where: { email: updatedEmail } });
+      if (existingUser && existingUser.id !== req.user.id) {
+        return res.status(400).json({ message: 'Email is already in use' });
+      }
+    }
+
+    const updateData = {
+      name: updatedName,
+      email: updatedEmail,
+      contactNumber: contactNumber !== undefined ? (contactNumber || null) : currentUser.contactNumber,
+      vizNo: vizNo !== undefined ? (vizNo || null) : currentUser.vizNo,
+      designation: designation !== undefined ? (designation || null) : currentUser.designation,
+    };
+
+    if (profileImageUrl !== undefined) {
+      updateData.profileImageUrl = profileImageUrl || null;
     }
 
     const user = await prisma.user.update({
       where: { id: req.user.id },
-      data: {
-        name,
-        email,
-        contactNumber: contactNumber || null,
-        vizNo: vizNo || null,
-        designation: designation || null,
-      },
+      data: updateData,
     });
 
     res.json({
@@ -113,10 +130,12 @@ export const updateUserProfile = async (req, res) => {
       contactNumber: user.contactNumber,
       vizNo: user.vizNo,
       designation: user.designation,
+      profileImageUrl: user.profileImageUrl || null,
       role: user.role,
       token: generateToken(user.id, user.role),
     });
   } catch (error) {
+    console.error('Profile update error:', error);
     res.status(500).json({ message: 'Server Error updating profile' });
   }
 };

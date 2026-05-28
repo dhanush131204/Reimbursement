@@ -63,6 +63,21 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ['Claim'],
     }),
+    createRazorpayOrder: builder.mutation({
+      query: (claimIds) => ({
+        url: '/api/payments/razorpay/order',
+        method: 'POST',
+        body: { claimIds },
+      }),
+    }),
+    verifyRazorpayPayment: builder.mutation({
+      query: (paymentData) => ({
+        url: '/api/payments/razorpay/verify',
+        method: 'POST',
+        body: paymentData,
+      }),
+      invalidatesTags: ['Claim'],
+    }),
     uploadFile: builder.mutation({
       query: (formData) => ({
         url: '/api/upload',
@@ -82,4 +97,6 @@ export const {
   useUpdateClaimStatusMutation,
   useUploadFileMutation,
   useDeleteClaimMutation,
+  useCreateRazorpayOrderMutation,
+  useVerifyRazorpayPaymentMutation,
 } = apiSlice;
